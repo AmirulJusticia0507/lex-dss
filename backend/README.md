@@ -59,12 +59,26 @@ cp .env.example .env
 
 ### 2. Database (PostgreSQL + pgvector)
 
+**Local Development (Docker Compose):**
 ```bash
-# Via Docker (recommended)
 docker-compose up -d postgres redis
-
-# Atau install lokal dengan pgvector extension
 ```
+Default credentials:
+- Host: `localhost`
+- Port: `5432`
+- User: `postgres`
+- Password: `postgres`
+- Database: `lex_dss`
+- Connection URL: `postgresql+asyncpg://postgres:postgres@localhost:5432/lex_dss`
+
+**Production (Neon PostgreSQL):**
+```bash
+# Set DATABASE_URL di .env atau environment variable
+DATABASE_URL=postgresql+asyncpg://neondb_owner:npg_IfWBbCGaL8O2@ep-polished-unit-b51c91ak-pooler.c-7.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+```
+> **Note:** Untuk Neon, gunakan `postgresql+asyncpg://` scheme dan pastikan `sslmode=require` disertakan.
+
+**Atau install lokal dengan pgvector extension.**
 
 ### 3. Install Dependencies
 
@@ -214,15 +228,21 @@ alembic upgrade head
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `POSTGRES_SERVER` | Database host | localhost |
-| `POSTGRES_PORT` | Database port | 5432 |
-| `POSTGRES_USER` | Database user | postgres |
-| `POSTGRES_PASSWORD` | Database password | postgres |
-| `POSTGRES_DB` | Database name | lex_dss |
+| `POSTGRES_SERVER` | Database host (local) | localhost |
+| `POSTGRES_PORT` | Database port (local) | 5432 |
+| `POSTGRES_USER` | Database user (local) | postgres |
+| `POSTGRES_PASSWORD` | Database password (local) | postgres |
+| `POSTGRES_DB` | Database name (local) | lex_dss |
+| `DATABASE_URL` | Full connection string (production/override) | - |
 | `SECRET_KEY` | JWT secret key | (required) |
 | `OPENAI_API_KEY` | OpenAI API key | (required for embeddings) |
 | `EMBEDDING_MODEL` | OpenAI embedding model | text-embedding-3-small |
 | `LLM_MODEL` | OpenAI LLM model | gpt-4-turbo-preview |
+
+**Production DATABASE_URL example (Neon):**
+```
+postgresql+asyncpg://neondb_owner:npg_IfWBbCGaL8O2@ep-polished-unit-b51c91ak-pooler.c-7.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+```
 
 ## Deployment
 
