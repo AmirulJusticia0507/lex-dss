@@ -1,7 +1,7 @@
 <script setup>
 import { ref, reactive, computed } from 'vue'
 import { ElCard, ElForm, ElFormItem, ElInput, ElSelect, ElOption, ElButton, ElSwitch, ElRadioGroup, ElRadio, ElDivider, ElTabs, ElTabPane, ElTag, ElIcon, ElAlert, ElDescriptions, ElDescriptionsItem, ElSlider, ElColorPicker, ElTimePicker, ElDatePicker, ElUpload, ElMessage, ElDrawer } from 'element-plus'
-import { Setting, User, Lock, Bell, Moon, Sunny, Monitor, Palette, Globe, Database, Cloud, Cpu, Shield, Key, Download, Upload as UploadIcon, Delete, Refresh, CircleCheck, Warning } from '@element-plus/icons-vue'
+import { Setting, User, Lock, Bell, Moon, Sunny, Monitor, Brush, Coordinate, Box, Cloudy, Cpu, Key, Download, Upload as UploadIcon, Delete, Refresh, CircleCheck, Warning } from '@element-plus/icons-vue'
 
 const activeTab = ref('general')
 const saving = ref(false)
@@ -260,22 +260,22 @@ function syncDatabase() {
           <el-icon><Setting /></el-icon>
         </el-tab-pane>
         <el-tab-pane label="Tampilan" name="appearance">
-          <el-icon><Palette /></el-icon>
+          <el-icon><Brush /></el-icon>
         </el-tab-pane>
         <el-tab-pane label="Notifikasi" name="notifications">
           <el-icon><Bell /></el-icon>
         </el-tab-pane>
         <el-tab-pane label="API & Integrasi" name="api">
-          <el-icon><Cloud /></el-icon>
+          <el-icon><Cloudy /></el-icon>
         </el-tab-pane>
         <el-tab-pane label="AI & Model" name="ai">
           <el-icon><Cpu /></el-icon>
         </el-tab-pane>
         <el-tab-pane label="Database & Vector" name="database">
-          <el-icon><Database /></el-icon>
+          <el-icon><Box /></el-icon>
         </el-tab-pane>
         <el-tab-pane label="Keamanan" name="security">
-          <el-icon><Shield /></el-icon>
+          <el-icon><Lock /></el-icon>
         </el-tab-pane>
         <el-tab-pane label="Lanjutan" name="advanced">
           <el-icon><Key /></el-icon>

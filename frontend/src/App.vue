@@ -3,7 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMenu, ElMenuItem, ElSubMenu, ElIcon, ElAvatar, ElDropdown, ElDropdownMenu, ElDropdownItem, ElTooltip } from 'element-plus'
 import {
-  Monitor, Warning, DataAnalysis, Collection, Setting, User, Lock, SwitchButton, Moon, Sunny, Bell, Message, ArrowRight, FullScreen, Fold, Expand, Dashboard, Document, Cpu, TrendCharts
+  Monitor, Warning, DataAnalysis, Collection, Setting, User, Lock, SwitchButton, Moon, Sunny, Bell, Message, ArrowRight, FullScreen, Fold, Expand, DataBoard, Document, Cpu, TrendCharts
 } from '@element-plus/icons-vue'
 import { useUIStore } from '@/stores'
 import { useAuthStore } from '@/stores'

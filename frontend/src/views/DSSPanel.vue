@@ -1,7 +1,7 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
 import { ElCard, ElForm, ElFormItem, ElInput, ElSelect, ElOption, ElButton, ElRadioGroup, ElRadio, ElTable, ElTableColumn, ElTag, ElDivider, ElTabs, ElTabPane, ElAlert, ElDescriptions, ElDescriptionsItem, ElIcon, ElTooltip, ElDrawer, ElScrollbar, ElProgress, ElStatistic, ElRow, ElCol, ElSwitch, ElDatePicker, ElTimePicker, ElSlider, ElCollapse, ElCollapseItem } from 'element-plus'
-import { DataAnalysis, Cpu, Rank, Document, Warning, CircleCheck, ArrowRight, Download, Upload, Refresh, Setting, TrendCharts, Search, Filter, History, Star, Share, More, Edit, Delete, View, CopyDocument, FullScreen } from '@element-plus/icons-vue'
+import { DataAnalysis, Cpu, Rank, Document, Warning, CircleCheck, ArrowRight, Download, Upload, Refresh, Setting, TrendCharts, Search, Filter, Clock, Star, Share, More, Edit, Delete, View, CopyDocument, FullScreen } from '@element-plus/icons-vue'
 import { useDSSStore } from '@/stores'
 import { useLegalStore } from '@/stores'
 import LegalOpinionPanel from '@/components/LegalOpinionPanel.vue'
@@ -303,7 +303,7 @@ onMounted(() => {
           <el-icon><TrendCharts /></el-icon>
         </el-tab-pane>
         <el-tab-pane label="History" name="history">
-          <el-icon><History /></el-icon>
+          <el-icon><Clock /></el-icon>
         </el-tab-pane>
       </el-tabs>
     </el-card>
@@ -430,12 +430,12 @@ onMounted(() => {
                   <span style="font-weight: 600;">Fitur DSS Panel</span>
                 </template>
                 <ul style="line-height: 2; color: #374151;">
-                  <li><el-icon style="color: #16a34a; margin-right: 8px;"><CircleCheck /></el-icon> Legal Opinion dengan Ratio Decidendi</li>
-                  <li><el-icon style="color: #16a34a; margin-right: 8px;"><CheckCircle /></el-icon> Risk Score (0-100) dengan faktor detail</li>
-                  <li><el-icon style="color: #16a34a; margin-right: 8px;"><CheckCircle /></el-icon> Sitasi pasal hukum otomatis (RAG)</li>
-                  <li><el-icon style="color: #16a34a; margin-right: 8px;"><CheckCircle /></el-icon> Rekomendasi mitigasi actionable</li>
-                  <li><el-icon style="color: #16a34a; margin-right: 8px;"><CheckCircle /></el-icon> Export ke Markdown/PDF</li>
-                  <li><el-icon style="color: #16a34a; margin-right: 8px;"><CheckCircle /></el-icon> History & versioning</li>
+<li><el-icon style="color: #16a34a; margin-right: 8px;"><CircleCheck /></el-icon> Legal Opinion dengan Ratio Decidendi</li>
+                    <li><el-icon style="color: #16a34a; margin-right: 8px;"><CircleCheck /></el-icon> Risk Score (0-100) dengan faktor detail</li>
+                    <li><el-icon style="color: #16a34a; margin-right: 8px;"><CircleCheck /></el-icon> Sitasi pasal hukum otomatis (RAG)</li>
+                    <li><el-icon style="color: #16a34a; margin-right: 8px;"><CircleCheck /></el-icon> Rekomendasi mitigasi actionable</li>
+                    <li><el-icon style="color: #16a34a; margin-right: 8px;"><CircleCheck /></el-icon> Export ke Markdown/PDF</li>
+                    <li><el-icon style="color: #16a34a; margin-right: 8px;"><CircleCheck /></el-icon> History & versioning</li>
                 </ul>
               </el-card>
             </div>
