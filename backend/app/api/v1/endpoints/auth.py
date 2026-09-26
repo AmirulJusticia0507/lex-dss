@@ -1,8 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from pydantic import BaseModel, EmailStr
 from datetime import timedelta
+from jose import jwt, JWTError
 
 from app.core.database import get_db
 from app.core.security import (
@@ -11,6 +12,7 @@ from app.core.security import (
     create_access_token,
     get_current_active_user,
     ACCESS_TOKEN_EXPIRE_MINUTES,
+    settings,
 )
 from app.models.user import User
 
@@ -33,6 +35,10 @@ class UserLogin(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str = "bearer"
+
+
+class RefreshTokenRequest(BaseModel):
+    refresh_token: str
 
 
 class UserResponse(BaseModel):
@@ -94,6 +100,46 @@ async def login(user_in: UserLogin, db: AsyncSession = Depends(get_db)):
     return {"access_token": access_token, "token_type": "bearer"}
 
 
+@router.post("/logout")
+async def logout(
+    response: Response,
+    current_user: User = Depends(get_current_active_user),
+):
+    response.delete_cookie(key="access_token")
+    return {"message": "Successfully logged out"}
+
+
+@router.post("/refresh", response_model=Token)
+async def refresh_token(
+    request: RefreshTokenRequest,
+    current_user: User = Depends(get_current_active_user),
+):
+    try:
+        payload = jwt.decode(request.refresh_token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        user_id: str = payload.get("sub")
+        if user_id != str(current_user.id):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid refresh token",
+            )
+    except JWTError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid refresh token",
+        )
+    
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": str(current_user.id)}, expires_delta=access_token_expires
+    )
+    return {"access_token": access_token, "token_type": "bearer"}
+
+
 @router.get("/me", response_model=UserResponse)
 async def read_users_me(current_user: User = Depends(get_current_active_user)):
+    return current_user
+
+
+@router.get("/profile", response_model=UserResponse)
+async def read_profile(current_user: User = Depends(get_current_active_user)):
     return current_user

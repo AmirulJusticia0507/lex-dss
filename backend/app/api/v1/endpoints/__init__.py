@@ -5,6 +5,9 @@ from app.api.v1.endpoints import (
     audit,
     deviation,
     rag,
+    legal_analysis,
+    dss,
+    ingest,
 )
 
 __all__ = [
@@ -14,4 +17,7 @@ __all__ = [
     "audit",
     "deviation",
     "rag",
+    "legal_analysis",
+    "dss",
+    "ingest",
 ]
