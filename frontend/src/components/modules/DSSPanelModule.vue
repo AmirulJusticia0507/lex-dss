@@ -195,8 +195,25 @@ async function loadHistory() {
   }
 }
 
+const sampleOptions = [
+  { key: 'ht', label: 'Perda', icon: Document },
+  { key: 'criminal', label: 'Pidana', icon: Warning },
+  { key: 'civil', label: 'Perdata', icon: Rank },
+]
+
+const draftChars = computed(() => generationForm.draftText.trim().length)
+const draftWords = computed(() =>
+  generationForm.draftText.trim() ? generationForm.draftText.trim().split(/\s+/).length : 0
+)
+const draftTooShort = computed(() => draftChars.value > 0 && draftChars.value < 50)
+const canGenerate = computed(() => draftChars.value >= 50 && !generating.value)
+
 function loadSampleDraft(type) {
   generationForm.draftText = sampleDrafts[type] || ''
+}
+
+function clearDraft() {
+  generationForm.draftText = ''
 }
 
 function handleExportOpinion() {
@@ -386,37 +403,73 @@ onMounted(() => {
             <template #header>
               <div class="card-header">
                 <span class="card-title">Input Draf</span>
+                <div class="draft-head-actions">
+                  <el-tag v-if="draftChars" type="info" effect="plain" size="small">
+                    {{ draftWords }} kata
+                  </el-tag>
+                  <el-button
+                    class="draft-clear"
+                    size="small"
+                    link
+                    :disabled="!generationForm.draftText"
+                    @click="clearDraft"
+                  >
+                    <el-icon><Delete /></el-icon>
+                    Bersihkan
+                  </el-button>
+                </div>
               </div>
             </template>
-            <el-form ref="generationForm" :model="generationForm" label-width="0">
-              <el-form-item label="Teks Draf" prop="draftText">
-                <el-input
-                  v-model="generationForm.draftText"
-                  type="textarea"
-                  :rows="12"
-                  placeholder="Masukkan teks draf peraturan, perjanjian, atau dokumen hukum..."
-                  show-word-limit
-                  maxlength="50000"
-                  style="font-family: 'Merriweather', serif; font-size: 13px;"
-                />
-                <template #append>
-                  <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px;">
-                    <el-button size="small" @click="loadSampleDraft('ht')" type="text"><el-icon><Document /></el-icon> Sample Perda</el-button>
-                    <el-button size="small" @click="loadSampleDraft('criminal')" type="text"><el-icon><Warning /></el-icon> Sample Pidana</el-button>
-                    <el-button size="small" @click="loadSampleDraft('civil')" type="text"><el-icon><Rank /></el-icon> Sample Perdata</el-button>
-                    <el-button size="small" @click="generationForm.draftText = ''" type="text"><el-icon><Delete /></el-icon> Bersihkan</el-button>
-                  </div>
-                </template>
-              </el-form-item>
 
-              <el-form-item>
-                <el-button type="primary" size="large" @click="handleGenerate" :loading="generating" :disabled="!generationForm.draftText.trim()" style="width: 100%;">
-                  <el-icon v-if="!generating"><Cpu /></el-icon>
-                  <el-icon v-else class="is-loading"><Refresh /></el-icon>
-                  {{ generating ? 'Menghasilkan Legal Opinion...' : 'Generate Legal Opinion' }}
-                </el-button>
-              </el-form-item>
-            </el-form>
+            <div class="draft-field">
+              <div class="draft-toolbar">
+                <span class="draft-toolbar-label">Contoh draf</span>
+                <div class="draft-chips">
+                  <button
+                    v-for="s in sampleOptions"
+                    :key="s.key"
+                    type="button"
+                    class="draft-chip"
+                    @click="loadSampleDraft(s.key)"
+                  >
+                    <el-icon><component :is="s.icon" /></el-icon>
+                    {{ s.label }}
+                  </button>
+                </div>
+              </div>
+
+              <el-input
+                v-model="generationForm.draftText"
+                type="textarea"
+                :rows="14"
+                resize="vertical"
+                placeholder="Tempelkan teks draf peraturan daerah, perjanjian, atau dokumen hukum di sini&#10;&#10;Format ideal:&#10;PERATURAN DAERAH ...&#10;Pasal 1&#10;(1) ...&#10;Pasal 2&#10;(1) ..."
+                class="draft-textarea"
+              />
+
+              <div class="draft-meta">
+                <span class="draft-meta-text">
+                  {{ draftChars ? `${draftChars.toLocaleString('id-ID')} karakter` : 'Draf masih kosong' }}
+                </span>
+                <span v-if="draftTooShort && generationForm.draftText" class="draft-warn">
+                  <el-icon><Warning /></el-icon>
+                  Minimal 50 karakter
+                </span>
+              </div>
+
+              <el-button
+                type="primary"
+                size="large"
+                class="draft-submit"
+                :loading="generating"
+                :disabled="!canGenerate"
+                @click="handleGenerate"
+              >
+                <el-icon v-if="!generating"><Cpu /></el-icon>
+                <el-icon v-else class="is-loading"><Refresh /></el-icon>
+                {{ generating ? 'Menghasilkan Legal Opinion...' : 'Generate Legal Opinion' }}
+              </el-button>
+            </div>
           </el-card>
         </el-col>
 
@@ -589,8 +642,8 @@ onMounted(() => {
           </el-table-column>
           <el-table-column label="Aksi" width="120" fixed="right">
             <template #default="scope">
-              <el-button size="small" type="text" @click.stop="viewHistoryItem(scope.row)"><el-icon><View /></el-icon></el-button>
-              <el-button size="small" type="text" danger @click.stop="deleteHistoryItem(scope.row)"><el-icon><Delete /></el-icon></el-button>
+              <el-button size="small" link @click.stop="viewHistoryItem(scope.row)"><el-icon><View /></el-icon></el-button>
+              <el-button size="small" link danger @click.stop="deleteHistoryItem(scope.row)"><el-icon><Delete /></el-icon></el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -639,5 +692,127 @@ export default {
 
 .preview-stats {
   padding: 10px 0;
+}
+
+.draft-field {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.draft-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.draft-toolbar-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.draft-chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.draft-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--legal-dark);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-light);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+}
+
+.draft-chip:hover {
+  border-color: var(--primary-color);
+  background: var(--stat-primary-soft);
+  color: var(--stat-info);
+}
+
+.draft-chip:active {
+  transform: translateY(1px);
+}
+
+.draft-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.draft-clear {
+  color: var(--text-tertiary);
+  padding: 4px 8px;
+}
+
+.draft-clear:not(.is-disabled):hover {
+  color: var(--danger-color);
+  background: var(--stat-danger-soft);
+}
+
+.draft-textarea :deep(.el-textarea__inner) {
+  font-family: 'Merriweather', Georgia, serif;
+  font-size: 13.5px;
+  line-height: 1.85;
+  padding: 14px 16px;
+  color: var(--text-primary);
+  background: #fdfdfc;
+  border-radius: var(--radius-md);
+}
+
+.draft-textarea :deep(.el-textarea__inner:focus) {
+  background: var(--bg-tertiary);
+}
+
+.draft-textarea :deep(.el-textarea__inner::placeholder) {
+  color: var(--text-tertiary);
+  font-size: 12.5px;
+  line-height: 1.7;
+}
+
+.draft-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 12px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+.draft-warn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  flex: 1 1 auto;
+  justify-content: flex-end;
+  color: var(--warning-color);
+  text-align: right;
+}
+
+.draft-warn :deep(.el-icon) {
+  flex-shrink: 0;
+}
+
+.draft-submit {
+  width: 100%;
+  margin-top: 2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 </style>
