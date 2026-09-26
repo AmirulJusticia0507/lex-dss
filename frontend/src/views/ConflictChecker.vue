@@ -379,7 +379,7 @@ onMounted(() => {
                 <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                   <el-button size="small" @click="loadSampleDraft('ht')" type="text"><el-icon><Document /></el-icon> Sample Perda</el-button>
                   <el-button size="small" @click="loadSampleDraft('criminal')" type="text"><el-icon><Warning /></el-icon> Sample Pidana</el-button>
-                  <el-button size="small" @click="loadSampleDraft('civil')" type="text"><el-icon><Scale /></el-icon> Sample Perdata</el-button>
+                  <el-button size="small" @click="loadSampleDraft('civil')" type="text"><el-icon><Rank /></el-icon> Sample Perdata</el-button>
                   <el-button size="small" @click="draftText = ''" type="text"><el-icon><Delete /></el-icon> Bersihkan</el-button>
                 </div>
               </template>
