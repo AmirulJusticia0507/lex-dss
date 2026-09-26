@@ -3,7 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMenu, ElMenuItem, ElSubMenu, ElIcon, ElAvatar, ElDropdown, ElDropdownMenu, ElDropdownItem, ElTooltip } from 'element-plus'
 import {
-  Monitor, Warning, DataAnalysis, Collection, Setting, User, Lock, SwitchButton, Moon, Sunny, Bell, Message, ArrowRight, FullScreen, Fold, Expand, Dashboard, Document, Cpu, Rank, TrendCharts
+  Monitor, Warning, DataAnalysis, Collection, Setting, User, Lock, SwitchButton, Moon, Sunny, Bell, Message, ArrowRight, FullScreen, Fold, Expand, Dashboard, Document, Cpu, TrendCharts
 } from '@element-plus/icons-vue'
 import { useUIStore } from '@/stores'
 import { useAuthStore } from '@/stores'
@@ -73,9 +73,14 @@ function getNotificationTypeClass(type) {
   <el-container class="app-container">
     <el-aside :width="isCollapsed ? '64px' : '280px'" class="sidebar">
       <div class="logo-container">
-        <div class="logo-icon">
-          <el-icon><Rank /></el-icon>
-        </div>
+<div class="logo-icon">
+  <svg width="24" height="24" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M16 4C10.48 4 6 8.48 6 14c0 2.5 0.9 4.8 2.4 6.6L16 28l7.6-7.4C25.1 18.8 26 16.5 26 14c0-5.52-4.48-10-10-10z" stroke="currentColor" stroke-width="1.8" fill="none"/>
+    <path d="M10 14h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+    <circle cx="16" cy="14" r="2" fill="currentColor"/>
+    <path d="M8 22h16M8 25h12M8 28h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.9"/>
+  </svg>
+</div>
         <span v-show="!isCollapsed" class="logo-text">Lex-DSS</span>
       </div>
 
