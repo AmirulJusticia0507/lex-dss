@@ -2,6 +2,33 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { legalApi, dssApi } from '@/api'
 
+function extractArticleList(payload) {
+  let current = payload
+
+  // Support both the API's `{ data: [...] }` response and common nested
+  // envelopes such as `{ data: { items: [...] } }`.
+  for (let depth = 0; depth < 4 && current; depth += 1) {
+    if (Array.isArray(current)) {
+      return current.map((article) => ({
+        ...article,
+        hierarchy_rank: article.hierarchy_rank ?? article.hierarchy?.rank ?? null,
+      }))
+    }
+
+    const list = current.items ?? current.results ?? current.articles
+    if (Array.isArray(list)) {
+      return list.map((article) => ({
+        ...article,
+        hierarchy_rank: article.hierarchy_rank ?? article.hierarchy?.rank ?? null,
+      }))
+    }
+
+    current = current.data
+  }
+
+  return []
+}
+
 export const useLegalStore = defineStore('legal', () => {
   const conflicts = ref([])
   const articles = ref([])
@@ -70,7 +97,7 @@ export const useLegalStore = defineStore('legal', () => {
     error.value = null
     try {
       const response = await legalApi.getLegalArticles(params)
-      articles.value = response.data.data || response.data
+      articles.value = extractArticleList(response.data)
     } catch (err) {
       error.value = err.message
       throw err

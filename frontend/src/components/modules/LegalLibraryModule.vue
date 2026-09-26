@@ -60,14 +60,14 @@ async function fetchArticles() {
   try {
     const params = {
       page: page.value,
-      limit: pageSize.value,
+      page_size: pageSize.value,
       search: searchQuery.value,
       domain: selectedDomain.value !== 'all' ? selectedDomain.value : '',
-      hierarchy: selectedHierarchy.value !== 'all' ? selectedHierarchy.value : '',
+      hierarchy_id: selectedHierarchy.value !== 'all' ? selectedHierarchy.value : '',
       sort: sortBy.value,
     }
     await legalStore.fetchArticles(params)
-    articles.value = legalStore.articles
+    articles.value = Array.isArray(legalStore.articles) ? legalStore.articles : []
     total.value = legalStore.stats?.total_articles || articles.value.length
 
     if (legalStore.stats) {
@@ -244,7 +244,7 @@ onMounted(() => {
 
       <el-table
         v-loading="loading"
-        :data="articles"
+        :data="Array.isArray(articles) ? articles : []"
         border
         stripe
         style="width: 100%"
