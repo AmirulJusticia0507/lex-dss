@@ -1,4 +1,4 @@
-@import './variables.scss';
+@import './variables.css';
 
 @tailwind base;
 @tailwind components;
@@ -32,7 +32,7 @@ body {
 }
 
 .el-aside {
-  background-color: $legal-dark;
+  background-color: var(--legal-dark);
   color: white;
   transition: width 0.3s ease;
   overflow: hidden;
@@ -70,7 +70,7 @@ body {
 .logo-icon {
   width: 40px;
   height: 40px;
-  background: linear-gradient(135deg, $primary-color, $legal-gold);
+  background: linear-gradient(135deg, var(--primary-color), var(--legal-gold));
   border-radius: 10px;
   display: flex;
   align-items: center;
@@ -111,7 +111,7 @@ body {
 
 .nav-item.active {
   background: linear-gradient(135deg, rgba(14, 165, 233, 0.2), rgba(201, 168, 76, 0.2));
-  border-left: 3px solid $legal-gold;
+  border-left: 3px solid var(--legal-gold);
 }
 
 .nav-icon {
@@ -137,7 +137,7 @@ body {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: linear-gradient(135deg, $primary-color, $legal-gold);
+  background: linear-gradient(135deg, var(--primary-color), var(--legal-gold));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -191,7 +191,7 @@ body {
 
 .search-box input:focus {
   outline: none;
-  border-color: $primary-color;
+  border-color: var(--primary-color);
   background: white;
   box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
 }
@@ -222,7 +222,7 @@ body {
 
 .notification-btn:hover {
   background: #f3f4f6;
-  color: $primary-color;
+  color: var(--primary-color);
 }
 
 .notification-badge {
@@ -254,7 +254,7 @@ body {
   font-family: 'Merriweather', serif;
   font-size: 28px;
   font-weight: 700;
-  color: $legal-dark;
+  color: var(--legal-dark);
 }
 
 .page-subtitle {
@@ -284,7 +284,7 @@ body {
 .card-title {
   font-size: 16px;
   font-weight: 600;
-  color: $legal-dark;
+  color: var(--legal-dark);
 }
 
 .card-body {
@@ -292,7 +292,7 @@ body {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, $primary-color, #0284c7);
+  background: linear-gradient(135deg, var(--primary-color), #0284c7);
   border: none;
   color: white;
   padding: 10px 20px;
@@ -341,7 +341,7 @@ body {
 .stat-value {
   font-size: 32px;
   font-weight: 700;
-  color: $legal-dark;
+  color: var(--legal-dark);
   font-family: 'Merriweather', serif;
 }
 
@@ -425,7 +425,6 @@ body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-}
 
 .panel-header {
   padding: 16px 20px;
@@ -439,7 +438,7 @@ body {
 .panel-title {
   font-size: 14px;
   font-weight: 600;
-  color: $legal-dark;
+  color: var(--legal-dark);
 }
 
 .panel-content {
@@ -478,13 +477,13 @@ body {
 }
 
 .reference-item:hover {
-  border-color: $primary-color;
+  border-color: var(--primary-color);
   box-shadow: 0 2px 8px rgba(14, 165, 233, 0.1);
 }
 
 .reference-title {
   font-weight: 600;
-  color: $legal-dark;
+  color: var(--legal-dark);
   margin-bottom: 4px;
 }
 
@@ -570,13 +569,6 @@ body {
   background: #fce7f3;
   color: #db2777;
 }
-
-@media (max-width: 1024px) {
-  .legal-opinion-panel {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto auto auto;
-    height: auto;
-  }
 }
 
 @media (max-width: 768px) {
@@ -604,7 +596,7 @@ body {
 
 .el-table__header-wrapper th {
   background: #f9fafb;
-  color: $legal-dark;
+  color: var(--legal-dark);
   font-weight: 600;
   font-size: 12px;
   text-transform: uppercase;
@@ -621,7 +613,7 @@ body {
 }
 
 .el-form-item__label {
-  color: $legal-dark;
+  color: var(--legal-dark);
   font-weight: 500;
   font-size: 13px;
 }
@@ -654,7 +646,7 @@ body {
   width: 48px;
   height: 48px;
   border: 4px solid #e5e7eb;
-  border-top-color: $primary-color;
+  border-top-color: var(--primary-color);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }

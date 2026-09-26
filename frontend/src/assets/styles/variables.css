@@ -1,0 +1,9 @@
+:root {
+  --primary-color: #0ea5e9;
+  --primary-color-rgb: 14, 165, 233;
+  --legal-dark: #1e3a5f;
+  --legal-gold: #c9a84c;
+  --legal-light: #f8f5f0;
+  --sidebar-width: 280px;
+  --header-height: 64px;
+}
