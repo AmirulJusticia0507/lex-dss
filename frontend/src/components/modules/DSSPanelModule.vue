@@ -346,7 +346,7 @@ onMounted(() => {
             <el-form ref="generationForm" :model="generationForm" label-width="140px" class="gen-form">
               <el-form-item label="Tipe Analisis">
                 <el-radio-group v-model="generationForm.analysisType" class="type-group">
-                  <el-radio v-for="type in analysisTypes" :key="type.value" :label="type.value" class="type-option">
+                  <el-radio v-for="type in analysisTypes" :key="type.value" :value="type.value" class="type-option">
                     <div class="type-title">{{ type.label }}</div>
                     <div class="type-desc">{{ type.desc }}</div>
                   </el-radio>

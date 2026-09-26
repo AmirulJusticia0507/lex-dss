@@ -1,0 +1,190 @@
+{
+  "schema_version": 1,
+  "notice": "Korpus awal untuk retrieval. Transkripsi pasal KUHAP disalin dari Pasal.id dan belum diverifikasi karakter per karakter terhadap PDF resmi. Verifikasi sebelum dipakai untuk keputusan hukum.",
+  "documents": [
+    {
+      "document_title": "Undang-Undang Dasar Negara Republik Indonesia Tahun 1945",
+      "article_number": "1",
+      "domain": "constitutional",
+      "hierarchy_type": "UUD 1945",
+      "content": "(1) Negara Indonesia ialah Negara Kesatuan, yang berbentuk Republik.\n(2) Kedaulatan berada di tangan rakyat dan dilaksanakan menurut Undang-Undang Dasar.\n(3) Negara Indonesia adalah negara hukum.",
+      "meta_data": {"act": "UUD NRI Tahun 1945 dalam satu naskah (perubahan I-IV)", "source_url": "https://peraturan.bpk.go.id/Download/92288/UUD45_SatuNaskah.pdf", "transcription_status": "manually_normalized_from_official_pdf", "verification_status": "not_independently_legal_reviewed"}
+    },
+    {
+      "document_title": "Undang-Undang Dasar Negara Republik Indonesia Tahun 1945",
+      "article_number": "24",
+      "domain": "constitutional",
+      "hierarchy_type": "UUD 1945",
+      "content": "(1) Kekuasaan kehakiman merupakan kekuasaan yang merdeka untuk menyelenggarakan peradilan guna menegakkan hukum dan keadilan.\n(2) Kekuasaan kehakiman dilakukan oleh sebuah Mahkamah Agung dan badan peradilan yang berada di bawahnya dalam lingkungan peradilan umum, lingkungan peradilan agama, lingkungan peradilan militer, lingkungan peradilan tata usaha negara, dan oleh sebuah Mahkamah Konstitusi.\n(3) Badan-badan lain yang fungsinya berkaitan dengan kekuasaan kehakiman diatur dalam undang-undang.",
+      "meta_data": {"act": "UUD NRI Tahun 1945 dalam satu naskah (perubahan I-IV)", "source_url": "https://peraturan.bpk.go.id/Download/92288/UUD45_SatuNaskah.pdf", "transcription_status": "manually_normalized_from_official_pdf", "verification_status": "not_independently_legal_reviewed"}
+    },
+    {
+      "document_title": "Undang-Undang Dasar Negara Republik Indonesia Tahun 1945",
+      "article_number": "27",
+      "domain": "constitutional",
+      "hierarchy_type": "UUD 1945",
+      "content": "(1) Segala warga negara bersamaan kedudukannya di dalam hukum dan pemerintahan dan wajib menjunjung hukum dan pemerintahan itu dengan tidak ada kecualinya.\n(2) Tiap-tiap warga negara berhak atas pekerjaan dan penghidupan yang layak bagi kemanusiaan.\n(3) Setiap warga negara berhak dan wajib ikut serta dalam upaya pembelaan negara.",
+      "meta_data": {"act": "UUD NRI Tahun 1945 dalam satu naskah (perubahan I-IV)", "source_url": "https://peraturan.bpk.go.id/Download/92288/UUD45_SatuNaskah.pdf", "transcription_status": "manually_normalized_from_official_pdf", "verification_status": "not_independently_legal_reviewed"}
+    },
+    {
+      "document_title": "Undang-Undang Dasar Negara Republik Indonesia Tahun 1945",
+      "article_number": "28A",
+      "domain": "constitutional",
+      "hierarchy_type": "UUD 1945",
+      "content": "Setiap orang berhak untuk hidup serta berhak mempertahankan hidup dan kehidupannya.",
+      "meta_data": {"act": "UUD NRI Tahun 1945 dalam satu naskah (perubahan I-IV)", "source_url": "https://peraturan.bpk.go.id/Download/92288/UUD45_SatuNaskah.pdf", "transcription_status": "manually_normalized_from_official_pdf", "verification_status": "not_independently_legal_reviewed"}
+    },
+    {
+      "document_title": "Undang-Undang Dasar Negara Republik Indonesia Tahun 1945",
+      "article_number": "28D",
+      "domain": "constitutional",
+      "hierarchy_type": "UUD 1945",
+      "content": "(1) Setiap orang berhak atas pengakuan, jaminan, perlindungan, dan kepastian hukum yang adil serta perlakuan yang sama di hadapan hukum.\n(2) Setiap orang berhak untuk bekerja serta mendapat imbalan dan perlakuan yang adil dan layak dalam hubungan kerja.\n(3) Setiap warga negara berhak memperoleh kesempatan yang sama dalam pemerintahan.\n(4) Setiap orang berhak atas status kewarganegaraan.",
+      "meta_data": {"act": "UUD NRI Tahun 1945 dalam satu naskah (perubahan I-IV)", "source_url": "https://peraturan.bpk.go.id/Download/92288/UUD45_SatuNaskah.pdf", "transcription_status": "manually_normalized_from_official_pdf", "verification_status": "not_independently_legal_reviewed"}
+    },
+    {
+      "document_title": "Undang-Undang Dasar Negara Republik Indonesia Tahun 1945",
+      "article_number": "28G",
+      "domain": "constitutional",
+      "hierarchy_type": "UUD 1945",
+      "content": "(1) Setiap orang berhak atas perlindungan diri pribadi, keluarga, kehormatan, martabat, dan harta benda yang di bawah kekuasaannya, serta berhak atas rasa aman dan perlindungan dari ancaman ketakutan untuk berbuat atau tidak berbuat sesuatu yang merupakan hak asasi.\n(2) Setiap orang berhak untuk bebas dari penyiksaan dan perlakuan yang merendahkan derajat martabat manusia dan berhak memperoleh suaka politik dari negara lain.",
+      "meta_data": {"act": "UUD NRI Tahun 1945 dalam satu naskah (perubahan I-IV)", "source_url": "https://peraturan.bpk.go.id/Download/92288/UUD45_SatuNaskah.pdf", "transcription_status": "manually_normalized_from_official_pdf", "verification_status": "not_independently_legal_reviewed"}
+    },
+    {
+      "document_title": "Undang-Undang Dasar Negara Republik Indonesia Tahun 1945",
+      "article_number": "28I",
+      "domain": "constitutional",
+      "hierarchy_type": "UUD 1945",
+      "content": "(1) Hak untuk hidup, hak untuk tidak disiksa, hak kemerdekaan pikiran dan hati nurani, hak beragama, hak untuk tidak diperbudak, hak untuk diakui sebagai pribadi di hadapan hukum, dan hak untuk tidak dituntut atas dasar hukum yang berlaku surut adalah hak asasi manusia yang tidak dapat dikurangi dalam keadaan apa pun.\n(2) Setiap orang berhak bebas atas perlakuan yang bersifat diskriminatif atas dasar apa pun dan berhak mendapatkan perlindungan terhadap perlakuan yang bersifat diskriminatif itu.\n(3) Identitas budaya dan hak masyarakat tradisional dihormati selaras dengan perkembangan zaman dan peradaban.\n(4) Perlindungan, pemajuan, penegakan, dan pemenuhan hak asasi manusia adalah tanggung jawab negara, terutama pemerintah.\n(5) Untuk menegakkan dan melindungi hak asasi manusia sesuai dengan prinsip negara hukum yang demokratis, maka pelaksanaan hak asasi manusia dijamin, diatur, dan dituangkan dalam peraturan perundang-undangan.",
+      "meta_data": {"act": "UUD NRI Tahun 1945 dalam satu naskah (perubahan I-IV)", "source_url": "https://peraturan.bpk.go.id/Download/92288/UUD45_SatuNaskah.pdf", "transcription_status": "manually_normalized_from_official_pdf", "verification_status": "not_independently_legal_reviewed"}
+    },
+    {
+      "document_title": "Undang-Undang Dasar Negara Republik Indonesia Tahun 1945",
+      "article_number": "28J",
+      "domain": "constitutional",
+      "hierarchy_type": "UUD 1945",
+      "content": "(1) Setiap orang wajib menghormati hak asasi manusia orang lain dalam tertib kehidupan bermasyarakat, berbangsa, dan bernegara.\n(2) Dalam menjalankan hak dan kebebasannya, setiap orang wajib tunduk kepada pembatasan yang ditetapkan dengan undang-undang dengan maksud semata-mata untuk menjamin pengakuan serta penghormatan atas hak dan kebebasan orang lain dan untuk memenuhi tuntutan yang adil sesuai dengan pertimbangan moral, nilai-nilai agama, keamanan, dan ketertiban umum dalam suatu masyarakat demokratis.",
+      "meta_data": {"act": "UUD NRI Tahun 1945 dalam satu naskah (perubahan I-IV)", "source_url": "https://peraturan.bpk.go.id/Download/92288/UUD45_SatuNaskah.pdf", "transcription_status": "manually_normalized_from_official_pdf", "verification_status": "not_independently_legal_reviewed"}
+    },
+    {
+      "document_title": "Undang-Undang Nomor 20 Tahun 2025 tentang Kitab Undang-Undang Hukum Acara Pidana",
+      "article_number": "2",
+      "domain": "criminal",
+      "hierarchy_type": "UU",
+      "content": "(1) Acara pidana dilaksanakan hanya berdasarkan tata cara yang diatur dalam Undang-Undang.\n(2) Acara pidana dilaksanakan dengan sistem peradilan pidana terpadu atas dasar prinsip diferensiasi fungsional yang menekankan fungsi Penyidikan pada Kepolisian Negara Republik Indonesia, Penuntutan pada Jaksa, pemeriksaan pengadilan pada Hakim, Advokat yang memberikan Jasa Hukum dan Bantuan Hukum dalam rangka mendudukkan peristiwa pidana secara profesional dan proporsional serta Pembimbing Kemasyarakatan yang melaksanakan fungsi pembinaan terhadap narapidana dan Terpidana.",
+      "meta_data": {"act": "UU 20/2025", "status": "berlaku", "effective_date": "2026-01-02", "repeals": "UU 8/1981", "source_url": "https://peraturan.bpk.go.id/Details/337302/uu-no-20-tahun-2025", "transcription_url": "https://pasal.id/peraturan/uu/uu-no-20-tahun-2025/pasal-2", "transcription_status": "third_party_golden_transcription_unreviewed", "verification_status": "not_independently_legal_reviewed"}
+    },
+    {
+      "document_title": "Undang-Undang Nomor 20 Tahun 2025 tentang Kitab Undang-Undang Hukum Acara Pidana",
+      "article_number": "3",
+      "domain": "criminal",
+      "hierarchy_type": "UU",
+      "content": "(1) Ruang lingkup berlakunya Undang-Undang ini dimaksudkan untuk melaksanakan tata cara peradilan pidana dalam lingkungan peradilan umum pada semua tahap peradilan.\n(2) Ketentuan dalam Undang-Undang ini dimaksudkan untuk melaksanakan tata cara peradilan pidana terhadap seluruh tindak pidana, kecuali diatur lain dalam Undang-Undang.",
+      "meta_data": {"act": "UU 20/2025", "status": "berlaku", "effective_date": "2026-01-02", "repeals": "UU 8/1981", "source_url": "https://peraturan.bpk.go.id/Details/337302/uu-no-20-tahun-2025", "transcription_url": "https://pasal.id/peraturan/uu/uu-no-20-tahun-2025/pasal-3", "transcription_status": "third_party_golden_transcription_unreviewed", "verification_status": "not_independently_legal_reviewed"}
+    },
+    {
+      "document_title": "Undang-Undang Nomor 20 Tahun 2025 tentang Kitab Undang-Undang Hukum Acara Pidana",
+      "article_number": "4",
+      "domain": "criminal",
+      "hierarchy_type": "UU",
+      "content": "Acara pidana yang diatur dalam Undang-Undang ini dilaksanakan dengan perpaduan antara sistem Hakim aktif dengan para pihak berlawanan secara berimbang dalam pemeriksaan di sidang pengadilan.",
+      "meta_data": {"act": "UU 20/2025", "status": "berlaku", "effective_date": "2026-01-02", "repeals": "UU 8/1981", "source_url": "https://peraturan.bpk.go.id/Details/337302/uu-no-20-tahun-2025", "transcription_url": "https://pasal.id/peraturan/uu/uu-no-20-tahun-2025/pasal-4", "transcription_status": "third_party_golden_transcription_unreviewed", "verification_status": "not_independently_legal_reviewed"}
+    },
+    {
+      "document_title": "Undang-Undang Nomor 20 Tahun 2025 tentang Kitab Undang-Undang Hukum Acara Pidana",
+      "article_number": "31",
+      "domain": "criminal",
+      "hierarchy_type": "UU",
+      "content": "Sebelum dimulainya pemeriksaan sebagaimana dimaksud dalam Pasal 30, Penyidik wajib memberitahukan kepada Tersangka mengenai haknya untuk mendapatkan Bantuan Hukum atau pendampingan oleh Advokat atau Pemberi Bantuan Hukum.",
+      "meta_data": {"act": "UU 20/2025", "status": "berlaku", "effective_date": "2026-01-02", "repeals": "UU 8/1981", "source_url": "https://peraturan.bpk.go.id/Details/337302/uu-no-20-tahun-2025", "transcription_url": "https://pasal.id/peraturan/uu/uu-no-20-tahun-2025/pasal-31", "transcription_status": "third_party_golden_transcription_unreviewed", "verification_status": "not_independently_legal_reviewed"}
+    },
+    {
+      "document_title": "Undang-Undang Nomor 20 Tahun 2025 tentang Kitab Undang-Undang Hukum Acara Pidana",
+      "article_number": "32",
+      "domain": "criminal",
+      "hierarchy_type": "UU",
+      "content": "(1) Dalam hal Penyidik sedang melakukan pemeriksaan terhadap Tersangka, Advokat atau Pemberi Bantuan Hukum mendampingi selama jalannya pemeriksaan.\n(2) Dalam hal Penyidik melakukan intimidasi dan/atau mengajukan pertanyaan yang bersifat menjerat terhadap Tersangka, Advokat atau Pemberi Bantuan Hukum dapat menyatakan keberatan.\n(3) Keberatan sebagaimana dimaksud pada ayat (2) dicatat dalam berita acara.",
+      "meta_data": {"act": "UU 20/2025", "status": "berlaku", "effective_date": "2026-01-02", "repeals": "UU 8/1981", "source_url": "https://peraturan.bpk.go.id/Details/337302/uu-no-20-tahun-2025", "transcription_url": "https://pasal.id/peraturan/uu/uu-no-20-tahun-2025/pasal-32", "transcription_status": "third_party_golden_transcription_unreviewed", "verification_status": "not_independently_legal_reviewed"}
+    },
+    {
+      "document_title": "Undang-Undang Nomor 20 Tahun 2025 tentang Kitab Undang-Undang Hukum Acara Pidana",
+      "article_number": "53",
+      "domain": "criminal",
+      "hierarchy_type": "UU",
+      "content": "(1) Setiap pelapor, pengadu, Saksi, dan/atau Korban berhak memperoleh pelindungan.\n(2) Pelindungan sebagaimana dimaksud pada ayat (1) berlaku pada setiap tahap pemeriksaan.\n(3) Dalam hal diperlukan, pelindungan dapat dilakukan secara khusus dan tanpa batas waktu.\n(4) Pelindungan sebagaimana dimaksud pada ayat (1) dilaksanakan oleh lembaga yang melaksanakan tugas dan fungsi di bidang pelindungan Saksi dan Korban.",
+      "meta_data": {"act": "UU 20/2025", "status": "berlaku", "effective_date": "2026-01-02", "repeals": "UU 8/1981", "source_url": "https://peraturan.bpk.go.id/Details/337302/uu-no-20-tahun-2025", "transcription_url": "https://pasal.id/peraturan/uu/uu-no-20-tahun-2025/pasal-53", "transcription_status": "third_party_golden_transcription_unreviewed", "verification_status": "not_independently_legal_reviewed"}
+    },
+    {
+      "document_title": "Undang-Undang Nomor 20 Tahun 2025 tentang Kitab Undang-Undang Hukum Acara Pidana",
+      "article_number": "89",
+      "domain": "criminal",
+      "hierarchy_type": "UU",
+      "content": "Bentuk Upaya Paksa meliputi: a. Penetapan Tersangka; b. Penangkapan; c. Penahanan; d. Penggeledahan; e. Penyitaan; f. Penyadapan; g. pemeriksaan surat; h. Pemblokiran; dan i. larangan bagi Tersangka atau Terdakwa untuk keluar wilayah Indonesia.",
+      "meta_data": {"act": "UU 20/2025", "status": "berlaku", "effective_date": "2026-01-02", "repeals": "UU 8/1981", "source_url": "https://peraturan.bpk.go.id/Details/337302/uu-no-20-tahun-2025", "transcription_url": "https://pasal.id/peraturan/uu/uu-no-20-tahun-2025/pasal-89", "transcription_status": "third_party_golden_transcription_unreviewed", "verification_status": "not_independently_legal_reviewed"}
+    },
+    {
+      "document_title": "Undang-Undang Nomor 20 Tahun 2025 tentang Kitab Undang-Undang Hukum Acara Pidana",
+      "article_number": "90",
+      "domain": "criminal",
+      "hierarchy_type": "UU",
+      "content": "(1) Penetapan Tersangka dilakukan Penyidik terhadap seseorang yang diduga melakukan tindak pidana berdasarkan minimal 2 (dua) alat bukti.\n(2) Penetapan Tersangka sebagaimana dimaksud pada ayat (1) dituangkan dalam surat Penetapan Tersangka yang ditandatangani oleh Penyidik dan diberitahukan kepada Tersangka paling lama 1 (satu) Hari terhitung sejak surat Penetapan Tersangka dikeluarkan.\n(3) Surat Penetapan Tersangka sebagaimana dimaksud pada ayat (2) memuat: a. identitas Tersangka; b. uraian singkat perkara; dan c. hak Tersangka.",
+      "meta_data": {"act": "UU 20/2025", "status": "berlaku", "effective_date": "2026-01-02", "repeals": "UU 8/1981", "source_url": "https://peraturan.bpk.go.id/Details/337302/uu-no-20-tahun-2025", "transcription_url": "https://pasal.id/peraturan/uu/uu-no-20-tahun-2025/pasal-90", "transcription_status": "third_party_golden_transcription_unreviewed", "verification_status": "not_independently_legal_reviewed"}
+    },
+    {
+      "document_title": "Undang-Undang Nomor 20 Tahun 2025 tentang Kitab Undang-Undang Hukum Acara Pidana",
+      "article_number": "114",
+      "domain": "criminal",
+      "hierarchy_type": "UU",
+      "content": "(1) Penyidik wajib menunjukkan surat tugas dan surat izin Penggeledahan dari ketua pengadilan negeri kepada Tersangka atau pemilik/penghuni rumah atau bangunan.\n(2) Penyidik melakukan Penggeledahan rumah atau bangunan sebagaimana dimaksud dalam Pasal 112 huruf a dengan disaksikan oleh 2 (dua) orang saksi.",
+      "meta_data": {"act": "UU 20/2025", "status": "berlaku", "effective_date": "2026-01-02", "repeals": "UU 8/1981", "source_url": "https://peraturan.bpk.go.id/Details/337302/uu-no-20-tahun-2025", "transcription_url": "https://pasal.id/peraturan/uu/uu-no-20-tahun-2025/pasal-114", "transcription_status": "third_party_golden_transcription_unreviewed", "verification_status": "not_independently_legal_reviewed"}
+    },
+    {
+      "document_title": "Undang-Undang Nomor 20 Tahun 2025 tentang Kitab Undang-Undang Hukum Acara Pidana",
+      "article_number": "119",
+      "domain": "criminal",
+      "hierarchy_type": "UU",
+      "content": "(1) Sebelum melakukan Penyitaan, Penyidik mengajukan permohonan izin kepada ketua pengadilan negeri tempat keberadaan benda tersebut.\n(2) Permohonan izin sebagaimana dimaksud pada ayat (1) harus memuat informasi lengkap mengenai benda yang akan disita minimal meliputi: a. jenis; b. jumlah dan nilai barang; c. lokasi; dan d. alasan Penyitaan.\n(3) Ketua pengadilan negeri wajib meneliti secara cermat permohonan izin sebagaimana dimaksud pada ayat (2) dalam jangka waktu paling lama 2 (dua) Hari terhitung sejak permohonan izin diajukan.",
+      "meta_data": {"act": "UU 20/2025", "status": "berlaku", "effective_date": "2026-01-02", "repeals": "UU 8/1981", "source_url": "https://peraturan.bpk.go.id/Details/337302/uu-no-20-tahun-2025", "transcription_url": "https://pasal.id/peraturan/uu/uu-no-20-tahun-2025/pasal-119", "transcription_status": "third_party_golden_transcription_unreviewed", "verification_status": "not_independently_legal_reviewed"}
+    },
+    {
+      "document_title": "Undang-Undang Nomor 20 Tahun 2025 tentang Kitab Undang-Undang Hukum Acara Pidana",
+      "article_number": "120",
+      "domain": "criminal",
+      "hierarchy_type": "UU",
+      "content": "(1) Dalam keadaan mendesak, Penyidik dapat melakukan Penyitaan tanpa izin ketua pengadilan negeri hanya atas benda bergerak dan untuk itu dalam jangka waktu paling lama 5 (lima) hari kerja wajib meminta persetujuan kepada ketua pengadilan negeri.\n(2) Keadaan mendesak sebagaimana dimaksud pada ayat (1) meliputi: a. letak geografis yang susah dijangkau; b. Tertangkap Tangan; c. Tersangka berpotensi berupaya merusak dan menghilangkan barang bukti secara nyata; d. benda atau aset tersebut mudah dipindahkan; e. adanya ancaman serius terhadap keamanan nasional atau nyawa seseorang yang memerlukan tindakan segera; dan/atau f. situasi berdasarkan penilaian Penyidik.",
+      "meta_data": {"act": "UU 20/2025", "status": "berlaku", "effective_date": "2026-01-02", "repeals": "UU 8/1981", "source_url": "https://peraturan.bpk.go.id/Details/337302/uu-no-20-tahun-2025", "transcription_url": "https://pasal.id/peraturan/uu/uu-no-20-tahun-2025/pasal-120", "transcription_status": "third_party_golden_transcription_unreviewed", "verification_status": "not_independently_legal_reviewed"}
+    },
+    {
+      "document_title": "Undang-Undang Nomor 20 Tahun 2025 tentang Kitab Undang-Undang Hukum Acara Pidana",
+      "article_number": "142",
+      "domain": "criminal",
+      "hierarchy_type": "UU",
+      "content": "Tersangka atau Terdakwa berhak: a. segera menjalankan pemeriksaan; b. memilih, menghubungi, dan mendapat pendampingan Advokat dalam setiap pemeriksaan; c. diberitahu dengan jelas dalam bahasa yang dimengerti olehnya mengenai apa yang disangkakan atau didakwakan kepadanya; d. diberitahu mengenai haknya; e. memberikan atau menolak untuk memberikan keterangan berkaitan dengan sangkaan atau dakwaan yang dikenakan kepadanya; f. setiap waktu mendapat bantuan Penerjemah atau juru bahasa; g. mendapat Jasa Hukum dan/atau Bantuan Hukum; h. menghubungi, berkomunikasi, dan menerima kunjungan perwakilan negaranya bagi Tersangka atau Terdakwa yang berkewarganegaraan asing; i. menunjuk perwakilan suatu negara untuk dihubungi; j. menghubungi, berkomunikasi, dan menerima kunjungan dokter untuk kepentingan pemeriksaan kesehatan atas dirinya; k. menghubungi, berkomunikasi, dan menerima kunjungan rohaniwan; l. menghubungi, berkomunikasi, dan menerima kunjungan Keluarga, kerabat, atau hubungan lain secara langsung atau melalui perantaraan Advokat; m. mengirim dan menerima surat dari dan kepada Advokat dan Keluarga Tersangka atau Terdakwa; n. mengajukan permohonan mekanisme Keadilan Restoratif; o. mengusahakan dan mengajukan Saksi dan/atau orang yang memiliki keahlian khusus; p. mengajukan tuntutan Ganti Rugi dan Rehabilitasi; dan/atau q. bebas dari penyiksaan, intimidasi, perbuatan tidak manusiawi atau merendahkan harkat dan martabat manusia selama proses hukum yang dijalankan berdasarkan ketentuan dalam Undang-Undang ini.",
+      "meta_data": {"act": "UU 20/2025", "status": "berlaku", "effective_date": "2026-01-02", "repeals": "UU 8/1981", "source_url": "https://peraturan.bpk.go.id/Details/337302/uu-no-20-tahun-2025", "transcription_url": "https://pasal.id/peraturan/uu/uu-no-20-tahun-2025/pasal-142", "transcription_status": "third_party_golden_transcription_unreviewed", "verification_status": "not_independently_legal_reviewed"}
+    },
+    {
+      "document_title": "Undang-Undang Nomor 20 Tahun 2025 tentang Kitab Undang-Undang Hukum Acara Pidana",
+      "article_number": "143",
+      "domain": "criminal",
+      "hierarchy_type": "UU",
+      "content": "Saksi berhak: a. tidak dapat dituntut secara hukum, baik pidana maupun perdata atas kesaksian dan/atau Laporan yang akan, sedang, atau telah diberikannya, kecuali kesaksian atau Laporan tersebut diberikan tidak dengan iktikad baik; b. memilih, menghubungi, dan mendapat pendampingan Advokat dalam setiap pemeriksaan; c. mendapat Bantuan Hukum; d. memberikan keterangan tanpa tekanan; e. mendapat Penerjemah atau juru bahasa; f. bebas dari pertanyaan yang menjerat; g. menolak memberikan keterangan yang dapat memberatkan dirinya sendiri walaupun Saksi telah mengambil sumpah atau janji; h. memperoleh pelindungan atas keamanan pribadi, Keluarga, dan harta bendanya, serta bebas dari ancaman yang berkaitan dengan kesaksian yang akan, sedang, atau telah diberikannya; i. dirahasiakan identitasnya; j. memperoleh penggantian biaya transportasi selama proses penanganan perkara; k. ikut serta dalam proses memilih dan menentukan bentuk pelindungan dan dukungan keamanan; l. memperoleh penggantian biaya transportasi selama proses pemenuhan layanan; dan/atau m. bebas dari penyiksaan, intimidasi, perbuatan tidak manusiawi atau merendahkan harkat dan martabat manusia selama proses hukum yang dijalankan berdasarkan ketentuan dalam Undang-Undang ini.",
+      "meta_data": {"act": "UU 20/2025", "status": "berlaku", "effective_date": "2026-01-02", "repeals": "UU 8/1981", "source_url": "https://peraturan.bpk.go.id/Details/337302/uu-no-20-tahun-2025", "transcription_url": "https://pasal.id/peraturan/uu/uu-no-20-tahun-2025/pasal-143", "transcription_status": "third_party_golden_transcription_unreviewed", "verification_status": "not_independently_legal_reviewed"}
+    },
+    {
+      "document_title": "Undang-Undang Nomor 20 Tahun 2025 tentang Kitab Undang-Undang Hukum Acara Pidana",
+      "article_number": "149",
+      "domain": "criminal",
+      "hierarchy_type": "UU",
+      "content": "(1) Advokat berstatus sebagai penegak hukum menjalankan tugas dan fungsi Jasa Hukum sesuai dengan etika profesi serta dijamin oleh hukum dan peraturan perundang-undangan.\n(2) Advokat tidak dapat dituntut baik secara perdata maupun pidana dalam menjalankan tugas profesinya dengan iktikad baik untuk kepentingan pembelaan klien di dalam atau di luar pengadilan.",
+      "meta_data": {"act": "UU 20/2025", "status": "berlaku", "effective_date": "2026-01-02", "repeals": "UU 8/1981", "source_url": "https://peraturan.bpk.go.id/Details/337302/uu-no-20-tahun-2025", "transcription_url": "https://pasal.id/peraturan/uu/uu-no-20-tahun-2025/pasal-149", "transcription_status": "third_party_golden_transcription_unreviewed", "verification_status": "not_independently_legal_reviewed"}
+    },
+    {
+      "document_title": "Undang-Undang Nomor 20 Tahun 2025 tentang Kitab Undang-Undang Hukum Acara Pidana",
+      "article_number": "150",
+      "domain": "criminal",
+      "hierarchy_type": "UU",
+      "content": "Advokat berhak: a. memberikan Jasa Hukum dan/atau Bantuan Hukum atas permintaan Tersangka, Terdakwa, Saksi, atau Korban; b. menghubungi, berkomunikasi, dan mengunjungi Tersangka, Terdakwa, Saksi, atau Korban sejak saat ditangkap atau ditahan pada semua tahap pemeriksaan dan setiap waktu untuk kepentingan pembelaan perkaranya; c. memberikan nasihat hukum kepada Tersangka, Terdakwa, Saksi, atau Korban mengenai hak dan kewajibannya dalam proses peradilan pidana; d. mendampingi Tersangka, Terdakwa, Saksi, dan Korban pada semua tahap pemeriksaan; e. meminta pejabat yang bersangkutan memberikan salinan berita acara pemeriksaan Tersangka untuk kepentingan pembelaan Tersangka sesaat setelah selesainya pemeriksaan; f. mengirim dan menerima surat dari Tersangka atau Terdakwa setiap kali dikehendaki olehnya; g. menghadiri sidang pengadilan dan mengajukan pembelaan terhadap Terdakwa; h. bebas mengeluarkan pendapat atau pernyataan di setiap tahap pemeriksaan pengadilan untuk memberikan pembelaan kepada Terdakwa; i. meminta keterangan dari Saksi dan Ahli dalam sidang pengadilan; j. meminta dokumen dan bukti yang relevan untuk membantu pembelaan; dan/atau k. mengajukan bukti yang meringankan Terdakwa dalam proses pemeriksaan di sidang pengadilan.",
+      "meta_data": {"act": "UU 20/2025", "status": "berlaku", "effective_date": "2026-01-02", "repeals": "UU 8/1981", "source_url": "https://peraturan.bpk.go.id/Details/337302/uu-no-20-tahun-2025", "transcription_url": "https://pasal.id/peraturan/uu/uu-no-20-tahun-2025/pasal-150", "transcription_status": "third_party_golden_transcription_unreviewed", "verification_status": "not_independently_legal_reviewed"}
+    }
+  ]
+}

@@ -352,7 +352,7 @@ onMounted(() => {
           <div class="quick-list">
             <p class="quick-hint">Pilih fokus analisis. Pilihan ini akan ikut terkirim saat draf dianalisis.</p>
             <el-radio-group v-model="analysisType" class="quick-group">
-              <el-radio v-for="type in analysisTypes" :key="type.value" :label="type.value" class="quick-option">
+              <el-radio v-for="type in analysisTypes" :key="type.value" :value="type.value" class="quick-option">
                 <span class="quick-copy">
                   <span class="quick-title">{{ type.label }}</span>
                   <span class="quick-desc">{{ type.description }}</span>

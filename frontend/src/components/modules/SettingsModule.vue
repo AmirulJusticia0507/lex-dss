@@ -309,7 +309,7 @@ function syncDatabase() {
             </el-form-item>
             <el-form-item label="Tema">
               <el-radio-group v-model="settings.general.theme" style="display: flex; gap: 20px;">
-                <el-radio v-for="t in themes" :key="t.value" :label="t.value" :style="{ display: 'flex', alignItems: 'center', gap: '8px' }">
+                <el-radio v-for="t in themes" :key="t.value" :value="t.value" :style="{ display: 'flex', alignItems: 'center', gap: '8px' }">
                   <el-icon><component :is="t.icon" /></el-icon>
                   {{ t.label }}
                 </el-radio>
@@ -360,7 +360,7 @@ function syncDatabase() {
             </el-form-item>
             <el-form-item label="Kepadatan UI">
               <el-radio-group v-model="settings.appearance.density" style="display: flex; gap: 20px;">
-                <el-radio v-for="d in densities" :key="d.value" :label="d.value">{{ d.label }}</el-radio>
+                <el-radio v-for="d in densities" :key="d.value" :value="d.value">{{ d.label }}</el-radio>
               </el-radio-group>
             </el-form-item>
             <el-divider style="margin: 24px 0;" />
