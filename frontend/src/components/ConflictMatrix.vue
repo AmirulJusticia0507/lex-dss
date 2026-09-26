@@ -1,5 +1,6 @@
 <script setup>
 import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
+import { DataAnalysis } from '@element-plus/icons-vue'
 import * as d3 from 'd3'
 
 const props = defineProps({
@@ -40,61 +41,78 @@ const severityScale = d3.scaleOrdinal()
   .domain(['HIGH', 'MEDIUM', 'LOW'])
   .range(['#dc2626', '#d97706', '#16a34a'])
 
-function initializeSimulation(nodes, links) {
+function initializeSimulation(nodes, links, width, height) {
   simulation = d3.forceSimulation(nodes)
     .force('link', d3.forceLink(links).id(d => d.id).distance(150).strength(0.7))
-    .force('charge', d3.forceManyBody().strength(-400))
-    .force('center', d3.forceCenter(props.width / 2, props.height / 2))
-    .force('collision', d3.forceCollide().radius(d => Math.max(d.radius || 30, 30)).strength(0.8))
-    .force('x', d3.forceX(props.width / 2).strength(0.1))
-    .force('y', d3.forceY(props.height / 2).strength(0.1))
-    .alphaDecay(0.02)
-    .velocityDecay(0.4)
+    .force('charge', d3.forceManyBody().strength(-600))
+    .force('center', d3.forceCenter(width / 2, height / 2))
+    .force('collision', d3.forceCollide().radius(d => Math.max(d.radius || 30, 44)).strength(0.9))
+    .force('x', d3.forceX(width / 2).strength(0.08))
+    .force('y', d3.forceY(height / 2).strength(0.08))
+    .alphaDecay(0.03)
+    .velocityDecay(0.45)
 
-  simulation.on('tick', () => {
-    if (!svg) return
-
-    link
-      .attr('x1', d => d.source.x)
-      .attr('y1', d => d.source.y)
-      .attr('x2', d => d.target.x)
-      .attr('y2', d => d.target.y)
-
-    node
-      .attr('transform', d => `translate(${d.x},${d.y})`)
-  })
+  return simulation
 }
 
 function createGraph() {
   if (!containerRef.value) return
 
+  const nodeKey = (article, type) => {
+    const raw = article?.id ?? `${article?.document_title || 'unknown'}::${article?.article_number || 'unknown'}`
+    return `${type}-${raw}`
+  }
+
   const nodes = props.conflicts.flatMap(conflict => [
-    { ...conflict.source_article, id: `source-${conflict.source_article.id}`, type: 'source', conflictId: conflict.id, conflictType: conflict.conflict_type, severity: conflict.severity },
-    { ...conflict.target_article, id: `target-${conflict.target_article.id}`, type: 'target', conflictId: conflict.id, conflictType: conflict.conflict_type, severity: conflict.severity },
+    {
+      ...conflict.source_article,
+      id: nodeKey(conflict.source_article, 'source'),
+      type: 'source',
+      conflictId: conflict.id,
+      conflictType: conflict.conflict_type,
+      severity: conflict.severity,
+    },
+    {
+      ...conflict.target_article,
+      id: nodeKey(conflict.target_article, 'target'),
+      type: 'target',
+      conflictId: conflict.id,
+      conflictType: conflict.conflict_type,
+      severity: conflict.severity,
+    },
   ])
 
   const uniqueNodes = Array.from(new Map(nodes.map(n => [n.id, n])).values())
   const links = props.conflicts.map(conflict => ({
-    source: `source-${conflict.source_article.id}`,
-    target: `target-${conflict.target_article.id}`,
+    source: nodeKey(conflict.source_article, 'source'),
+    target: nodeKey(conflict.target_article, 'target'),
     conflictId: conflict.id,
     conflictType: conflict.conflict_type,
     severity: conflict.severity,
   }))
 
+  const rect0 = containerRef.value.getBoundingClientRect()
+  const w0 = Math.max(rect0.width || props.width, 320)
+  const h0 = Math.max(rect0.height || props.height, 320)
+
   uniqueNodes.forEach((node, i) => {
-    node.radius = 30 + (node.article_number?.length || 0) * 2
-    node.x = node.x || props.width / 2 + (Math.random() - 0.5) * 200
-    node.y = node.y || props.height / 2 + (Math.random() - 0.5) * 200
+    const angle = (i / Math.max(uniqueNodes.length, 1)) * Math.PI * 2
+    const spread = Math.min(w0, h0) * 0.22
+    node.radius = 28
+    node.x = w0 / 2 + Math.cos(angle) * spread
+    node.y = h0 / 2 + Math.sin(angle) * spread
   })
 
-  initializeSimulation(uniqueNodes, links)
+  const rect = containerRef.value.getBoundingClientRect()
+  const width = Math.max(rect.width || props.width, 320)
+  const height = Math.max(rect.height || props.height, 320)
+
+  initializeSimulation(uniqueNodes, links, width, height)
 
   svg = d3.select(containerRef.value)
     .append('svg')
-    .attr('width', '100%')
-    .attr('height', '100%')
-    .attr('viewBox', `0 0 ${props.width} ${props.height}`)
+    .attr('class', 'matrix-svg')
+    .attr('viewBox', `0 0 ${width} ${height}`)
     .attr('preserveAspectRatio', 'xMidYMid meet')
 
   const defs = svg.append('defs')
@@ -217,9 +235,21 @@ function createGraph() {
         .attr('filter', 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))')
     })
 
+  const legendRows = 4
+  const severityRows = 3
+  const legendH = legendRows * 24 + severityRows * 24 + 34
+
   const legend = svg.append('g')
     .attr('class', 'legend')
-    .attr('transform', `translate(20, 20)`)
+    .attr('transform', 'translate(16, 16)')
+
+  legend.append('rect')
+    .attr('class', 'legend-bg')
+    .attr('x', -10)
+    .attr('y', -10)
+    .attr('width', 186)
+    .attr('height', legendH)
+    .attr('rx', 8)
 
   const legendData = [
     { type: 'LEX_SUPERIOR', label: 'Lex Superior' },
@@ -250,7 +280,7 @@ function createGraph() {
 
   const severityLegend = svg.append('g')
     .attr('class', 'severity-legend')
-    .attr('transform', `translate(20, ${20 + legendData.length * 24 + 16})`)
+    .attr('transform', `translate(0, ${legendRows * 24 + 20})`)
 
   const severityData = [
     { level: 'HIGH', label: 'High Severity' },
@@ -277,6 +307,23 @@ function createGraph() {
       .attr('fill', '#374151')
       .text(item.label)
   })
+
+  const position = () => {
+    link
+      .attr('x1', (d) => d.source.x)
+      .attr('y1', (d) => d.source.y)
+      .attr('x2', (d) => d.target.x)
+      .attr('y2', (d) => d.target.y)
+
+    linkLabels
+      .attr('x', (d) => (d.source.x + d.target.x) / 2)
+      .attr('y', (d) => (d.source.y + d.target.y) / 2 - 4)
+
+    node.attr('transform', (d) => `translate(${d.x},${d.y})`)
+  }
+
+  simulation.on('tick', position)
+  position()
 
   return { node, link, linkLabels }
 }
@@ -316,13 +363,35 @@ function destroyGraph() {
   }
 }
 
+let resizeObserver = null
+
 onMounted(() => {
   nextTick(() => {
     createGraph()
+    if (containerRef.value && typeof ResizeObserver !== 'undefined') {
+      resizeObserver = new ResizeObserver(() => {
+        if (!containerRef.value || !svg) return
+        const r = containerRef.value.getBoundingClientRect()
+        const w = Math.max(r.width || props.width, 320)
+        const h = Math.max(r.height || props.height, 320)
+        svg.attr('viewBox', `0 0 ${w} ${h}`)
+        simulation
+          ?.force('center', d3.forceCenter(w / 2, h / 2))
+          .force('x', d3.forceX(w / 2).strength(0.08))
+          .force('y', d3.forceY(h / 2).strength(0.08))
+          .alpha(0.15)
+          .restart()
+      })
+      resizeObserver.observe(containerRef.value)
+    }
   })
 })
 
 onUnmounted(() => {
+  if (resizeObserver) {
+    resizeObserver.disconnect()
+    resizeObserver = null
+  }
   destroyGraph()
 })
 
@@ -335,7 +404,6 @@ watch(() => props.conflicts, () => {
 
 watch(() => [props.width, props.height], () => {
   if (simulation) {
-    simulation.force('center', d3.forceCenter(props.width / 2, props.height / 2))
     simulation.alpha(0.3).restart()
   }
 })
@@ -347,14 +415,10 @@ defineExpose({
 </script>
 
 <template>
-  <div
-    ref="containerRef"
-    class="conflict-matrix-container"
-    style="width: 100%; height: 100%; min-height: 500px;"
-  >
+  <div ref="containerRef" class="conflict-matrix-container">
     <div v-if="conflicts.length === 0" class="empty-state">
-      <div class="empty-icon"><i class="el-icon-s-data"></i></div>
-      <p>Tidak ada data kontradiksi norma untuk divisualisasikan</p>
+      <el-icon class="empty-icon"><DataAnalysis /></el-icon>
+      <p class="empty-title">Tidak ada data kontradiksi</p>
       <p class="empty-hint">Jalankan analisis kontradiksi dari menu Conflict Checker</p>
     </div>
   </div>
@@ -362,39 +426,62 @@ defineExpose({
 
 <style scoped>
 .conflict-matrix-container {
-  background: white;
-  border-radius: 8px;
-  border: 1px solid #e5e7eb;
+  position: relative;
+  width: 100%;
+  min-height: 420px;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-md);
   overflow: hidden;
 }
 
+.matrix-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 420px;
+}
+
 .empty-state {
+  position: absolute;
+  inset: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 100%;
-  min-height: 400px;
-  color: #9ca3af;
+  color: var(--text-tertiary);
   text-align: center;
   padding: 40px;
+  gap: 4px;
 }
 
 .empty-icon {
-  font-size: 48px;
-  margin-bottom: 16px;
-  opacity: 0.5;
+  font-size: 40px;
+  margin-bottom: 12px;
+  opacity: 0.45;
+}
+
+.empty-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin: 0;
 }
 
 .empty-hint {
-  font-size: 13px;
-  margin-top: 8px;
-  opacity: 0.7;
+  font-size: 12px;
+  margin: 0;
+  opacity: 0.8;
 }
 
 .link-label {
   pointer-events: none;
   user-select: none;
+}
+
+:deep(.legend-bg) {
+  fill: rgba(255, 255, 255, 0.92);
+  stroke: var(--border-light);
+  stroke-width: 1;
 }
 
 .conflict-node text {

@@ -17,6 +17,7 @@
     "echarts": "^5.5.0",
     "element-plus": "^2.6.1",
     "pinia": "^2.1.7",
+    "sweetalert2": "^11.26.25",
     "vue": "^3.4.21",
     "vue-echarts": "^7.0.2",
     "vue-router": "^4.3.0"

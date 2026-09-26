@@ -35,6 +35,10 @@ const routes = [
     component: () => import('@/views/Settings.vue'),
     meta: { title: 'Pengaturan', icon: 'Setting' },
   },
+  {
+    path: '/:pathMatch(.*)*',
+    redirect: '/dashboard',
+  },
 ]
 
 const router = createRouter({
@@ -43,7 +47,7 @@ const router = createRouter({
 })
 
 router.beforeEach((to, from, next) => {
-  document.title = `${to.meta.title} | Lex-DSS`
+  document.title = `${to.meta.title || 'Dashboard'} | Lex-DSS`
   next()
 })
 

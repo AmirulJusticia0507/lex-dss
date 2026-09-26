@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMenu, ElMenuItem, ElSubMenu, ElIcon, ElAvatar, ElDropdown, ElDropdownMenu, ElDropdownItem, ElTooltip } from 'element-plus'
 import {
@@ -15,6 +15,7 @@ const authStore = useAuthStore()
 
 const isCollapsed = ref(false)
 const activeMenu = ref(route.path)
+watch(() => route.path, path => { activeMenu.value = path })
 const notifications = ref([
   { id: 1, title: 'Analisis kontradiksi selesai', message: 'Ditemukan 3 kontradiksi baru pada UU No. 12/2011', time: '5 menit lalu', read: false, type: 'warning' },
   { id: 2, title: 'Legal Opinion generated', message: 'Rekomendasi AI untuk draf Perda Pajak Daerah telah siap', time: '1 jam lalu', read: false, type: 'success' },
@@ -37,6 +38,7 @@ function handleMenuClick(item) {
 }
 
 function handleSelect(key, keyPath) {
+  activeMenu.value = key
   router.push(key)
 }
 
@@ -84,7 +86,7 @@ function getNotificationTypeClass(type) {
         <span v-show="!isCollapsed" class="logo-text">Lex-DSS</span>
       </div>
 
-      <nav class="nav-menu" aria-label="Main navigation">
+      <nav class="nav-menu sidebar-scroll" aria-label="Main navigation">
         <el-menu
           :default-active="activeMenu"
           :collapse="isCollapsed"
@@ -112,7 +114,7 @@ function getNotificationTypeClass(type) {
       </div>
     </el-aside>
 
-    <el-container>
+    <el-container class="app-body">
       <el-header class="header">
         <div class="header-left">
           <el-button
@@ -134,7 +136,7 @@ function getNotificationTypeClass(type) {
             <el-icon><Expand /></el-icon>
           </el-button>
 
-          <h1 v-show="!isCollapsed" class="page-title-header">
+          <h1 v-show="!isCollapsed" class="page-crumb">
             {{ getPageTitle() }}
           </h1>
         </div>
@@ -216,11 +218,7 @@ function getNotificationTypeClass(type) {
       </el-header>
 
       <el-main class="main-content">
-        <router-view v-slot="{ Component }">
-          <transition name="fade" mode="out-in">
-            <component :is="Component" />
-          </transition>
-        </router-view>
+        <router-view />
       </el-main>
     </el-container>
   </el-container>
@@ -251,14 +249,48 @@ export default {
 <style scoped>
 .app-container {
   height: 100vh;
-  display: flex;
-  flex-direction: column;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+@media (max-width: 768px) {
+  .app-container { height: 100dvh; }
+  .sidebar { width: 68px !important; }
+  .logo-text, .user-info, .nav-menu-el .el-menu-item span { display: none !important; }
+  .logo-container { justify-content: center; padding: 14px 8px; }
+  .nav-menu { padding: 14px 4px; }
+  .nav-menu-el .el-menu-item { justify-content: center; margin-inline: 4px; padding-inline: 0 !important; }
+  .user-profile { justify-content: center; padding: 12px 8px; }
+  .header { height: 64px; padding: 0 14px; }
+  .header-actions { gap: 8px; }
+  .search-box { display: none; }
+  .page-title-header { font-size: 16px; }
+  .main-content { padding: 16px !important; }
+}
+
+@media (max-width: 480px) {
+  .header { padding-inline: 10px; }
+  .user-dropdown-trigger { padding: 4px; }
+  .caret-icon, .username { display: none; }
+  .main-content { padding: 12px !important; }
+}
+
+.app-body {
+  min-width: 0;
+  min-height: 0;
 }
 
 .sidebar {
   height: 100%;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+}
+
+.sidebar-scroll {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .nav-menu-el {
@@ -268,10 +300,10 @@ export default {
 }
 
 .nav-menu-el .el-menu-item {
-  border-radius: 8px;
-  margin: 0 8px 4px;
+  border-radius: 12px;
+  margin: 0 8px 6px;
   height: auto;
-  padding: 12px 16px;
+  padding: 13px 16px;
   color: rgba(255, 255, 255, 0.8);
 }
 
@@ -284,6 +316,7 @@ export default {
 .nav-menu-el .el-menu-item.is-active {
   background: linear-gradient(135deg, rgba(14, 165, 233, 0.2), rgba(201, 168, 76, 0.2)) !important;
   border-left: 3px solid #c9a84c;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.06);
 }
 
 .sidebar-toggle {
@@ -297,12 +330,12 @@ export default {
   color: #0ea5e9;
 }
 
-.page-title-header {
-  font-family: 'Merriweather', serif;
-  font-size: 20px;
-  font-weight: 700;
-  color: #1e3a5f;
+.page-crumb {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
   margin: 0;
+  letter-spacing: 0.01em;
 }
 
 .search-box {
@@ -426,7 +459,8 @@ export default {
 
 .main-content {
   flex: 1;
-  overflow: hidden;
+  overflow-y: auto;
+  background: #f4f7fb;
 }
 
 .fade-enter-active,

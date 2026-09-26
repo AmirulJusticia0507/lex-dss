@@ -1,9 +1,54 @@
 :root {
   --primary-color: #0ea5e9;
-  --primary-color-rgb: 14, 165, 233;
+  --primary-hover: #0284c7;
+  --primary-light: #e0f2fe;
   --legal-dark: #1e3a5f;
   --legal-gold: #c9a84c;
   --legal-light: #f8f5f0;
   --sidebar-width: 280px;
   --header-height: 64px;
+  
+  --sidebar-bg: #1e3a5f;
+  --bg-primary: #f5f7fa;
+  --bg-secondary: #f9fafb;
+  --bg-tertiary: #ffffff;
+  
+  --text-primary: #1f2937;
+  --text-secondary: #6b7280;
+  --text-tertiary: #9ca3af;
+  
+  --border-light: #e5e7eb;
+  --border-medium: #d1d5db;
+  --border-dark: #9ca3af;
+  
+  --success-color: #16a34a;
+  --warning-color: #d97706;
+  --danger-color: #dc2626;
+  --info-color: #0ea5e9;
+
+  --stat-primary: #1e3a5f;
+  --stat-primary-soft: #e0f2fe;
+  --stat-success: #16a34a;
+  --stat-success-soft: #dcfce7;
+  --stat-warning: #d97706;
+  --stat-warning-soft: #fef3c7;
+  --stat-danger: #dc2626;
+  --stat-danger-soft: #fee2e2;
+  --stat-info: #0284c7;
+  --stat-info-soft: #e0f2fe;
+  --stat-gold: #a1802c;
+  --stat-gold-soft: #fdf6e3;
+  
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.08);
+  
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-full: 9999px;
+  
+  --transition-fast: 150ms ease;
+  --transition-normal: 200ms ease;
+  --transition-slow: 300ms ease;
 }
