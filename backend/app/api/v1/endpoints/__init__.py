@@ -8,6 +8,7 @@ from app.api.v1.endpoints import (
     legal_analysis,
     dss,
     ingest,
+    analysis,
 )
 
 __all__ = [
@@ -20,4 +21,5 @@ __all__ = [
     "legal_analysis",
     "dss",
     "ingest",
+    "analysis",
 ]

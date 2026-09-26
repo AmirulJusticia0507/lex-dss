@@ -10,6 +10,7 @@ from app.api.v1.endpoints import (
     legal_analysis,
     dss,
     ingest,
+    analysis,
 )
 
 api_router = APIRouter()
@@ -23,3 +24,11 @@ api_router.include_router(rag.router, prefix="/rag", tags=["RAG Pipeline"])
 api_router.include_router(legal_analysis.router, prefix="/legal", tags=["Legal Analysis"])
 api_router.include_router(dss.router, prefix="/dss", tags=["DSS Panel"])
 api_router.include_router(ingest.router, prefix="/ingest", tags=["Document Ingestion"])
+api_router.include_router(analysis.router, prefix="/analysis", tags=["Lex Integrity Analysis"])
+# Alias sesuai docs/API_SPECIFICATION.md §4.4-4.5: daftar/detail konflik di bawah /analysis.
+api_router.include_router(
+    norm_conflicts.router,
+    prefix="/analysis/conflicts",
+    tags=["Norm Conflicts"],
+    include_in_schema=False,
+)
