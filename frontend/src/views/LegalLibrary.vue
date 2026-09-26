@@ -1,7 +1,7 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
 import { ElCard, ElTable, ElTableColumn, ElInput, ElSelect, ElOption, ElButton, ElTag, ElIcon, ElTooltip, ElDropdown, ElDropdownMenu, ElDropdownItem, ElPagination, ElDialog, ElForm, ElFormItem, ElRadioGroup, ElRadio, ElDivider, ElEmpty, ElTabs, ElTabPane, ElStatistic, ElRow, ElCol, ElProgress, ElBadge, ElPopover, ElDrawer } from 'element-plus'
-import { Search, Filter, Download, Upload, Edit, Delete, View, CopyDocument, Star, More, Document, Collection, Scale, Warning, CircleCheck, ArrowRight, Setting, FullScreen } from '@element-plus/icons-vue'
+import { Search, Filter, Download, Upload, Edit, Delete, View, CopyDocument, Star, More, Document, Collection, Rank, Warning, CircleCheck, ArrowRight, Setting, FullScreen } from '@element-plus/icons-vue'
 import { useLegalStore } from '@/stores'
 
 const legalStore = useLegalStore()
@@ -215,7 +215,7 @@ onMounted(() => {
           <template #header>
             <div style="display: flex; justify-content: space-between; align-items: center;">
               <span style="font-size: 13px; color: #6b7280;">HTN</span>
-              <el-icon style="color: #0ea5e9;"><Scale /></el-icon>
+              <el-icon style="color: #0ea5e9;"><Rank /></el-icon>
             </div>
           </template>
           <el-statistic :value="stats.byDomain.HTN || 0" value-style="font-size: 28px; color: #0ea5e9;" />
