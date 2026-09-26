@@ -134,6 +134,7 @@ class TestLexPosterior:
             id="55555555-5555-5555-5555-555555555555",
             document_title="Perppu No. 2 Tahun 2025",
             hierarchy_type="PERPPU",
+            effective_date="2025-01-10",
             content="Peraturan yang sebelumnya mengatur perizinan usaha dicabut.",
         )
         older = make_norm(
@@ -185,7 +186,7 @@ class TestLexSpecialis:
         engine = lex_integrity_engine
         specific = make_norm(
             id="bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
-            content="Perda ini berlaku khusus untuk kegiatan pertambangan.",
+            content="Perda ini berlaku khusus untuk perizinan pertambangan.",
         )
         general = make_norm(
             id="cccccccc-cccc-cccc-cccc-cccccccccccc",
