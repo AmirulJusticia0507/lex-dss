@@ -58,3 +58,36 @@ lex-dss/
 │   └── vite.config.js
 └── README.md
 ```
+
+
+
+## ⚡ Fitur Utama
+
+1. **Cross-Norm Conflict Detection (Lex Integrity):** Menguji klausa baru terhadap basis data UU, PP, Perpres, dan Perda secara langsung.
+2. **AI Legal Assistant & Reasoner:** Memberikan rekomendasi pertimbangan hukum ( *Legal Opinion* ) lengkap dengan rasio decidendi.
+3. **Hierarchy Validation Engine:** Otomatis mendeteksi jika Perda atau Perpres bertentangan dengan UU di atasnya.
+4. **Citation & Traceability:** AI selalu melampirkan rujukan pasal dan bunyi norma yang valid (mencegah  *hallucination* ).
+
+## 🚀 Panduan Memulai (Quickstart)
+
+### Backend (Python)
+
+**Bash**
+
+```
+cd backend
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install -r requirements.txt
+uvicorn app.main:app --reload
+```
+
+### Frontend (Vue 3)
+
+**Bash**
+
+```
+cd frontend
+npm install
+npm run dev
+```
