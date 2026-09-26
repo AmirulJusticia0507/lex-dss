@@ -25,10 +25,21 @@ class DocumentIngestRequest(BaseModel):
     meta_data: Optional[Dict[str, Any]] = None
 
 
+class IngestedArticleResponse(BaseModel):
+    id: str
+    document_title: str
+    article_number: str
+    content: str
+    domain: Optional[str] = None
+    hierarchy_id: Optional[int] = None
+    meta_data: Optional[Dict[str, Any]] = None
+
+
 class DocumentIngestResponse(BaseModel):
     message: str
     articles_created: int
     article_ids: List[str]
+    articles: List[IngestedArticleResponse]
 
 
 class BatchIngestRequest(BaseModel):
@@ -44,6 +55,7 @@ async def ingest_document(
 ):
     articles_created = 0
     article_ids = []
+    article_records = []
     
     if "\n\nPasal " in request.content or "\nPasal " in request.content:
         articles = _parse_articles_from_text(request.content, request.document_title)
@@ -63,6 +75,7 @@ async def ingest_document(
             article.embedding = embedding
             
             article_ids.append(str(article.id))
+            article_records.append(_article_payload(article))
             articles_created += 1
     else:
         article_number = request.article_number or "1"
@@ -81,6 +94,7 @@ async def ingest_document(
         article.embedding = embedding
         
         article_ids.append(str(article.id))
+        article_records.append(_article_payload(article))
         articles_created = 1
     
     await db.commit()
@@ -89,6 +103,7 @@ async def ingest_document(
         message=f"Successfully ingested {articles_created} article(s)",
         articles_created=articles_created,
         article_ids=article_ids,
+        articles=article_records,
     )
 
 
@@ -101,6 +116,7 @@ async def ingest_batch(
 ):
     total_created = 0
     all_ids = []
+    article_records = []
     
     for doc in request.documents:
         if "\n\nPasal " in doc.content or "\nPasal " in doc.content:
@@ -121,6 +137,7 @@ async def ingest_batch(
                 article.embedding = embedding
                 
                 all_ids.append(str(article.id))
+                article_records.append(_article_payload(article))
                 total_created += 1
         else:
             article_number = doc.article_number or "1"
@@ -139,6 +156,7 @@ async def ingest_batch(
             article.embedding = embedding
             
             all_ids.append(str(article.id))
+            article_records.append(_article_payload(article))
             total_created += 1
     
     await db.commit()
@@ -147,6 +165,7 @@ async def ingest_batch(
         message=f"Successfully batch ingested {total_created} article(s)",
         articles_created=total_created,
         article_ids=all_ids,
+        articles=article_records,
     )
 
 
@@ -189,6 +208,7 @@ async def ingest_file(
     
     total_created = 0
     all_ids = []
+    article_records = []
     
     for doc in docs:
         if "\n\nPasal " in doc.content or "\nPasal " in doc.content:
@@ -209,6 +229,7 @@ async def ingest_file(
                 article.embedding = embedding
                 
                 all_ids.append(str(article.id))
+                article_records.append(_article_payload(article))
                 total_created += 1
         else:
             article_number = doc.article_number or "1"
@@ -227,6 +248,7 @@ async def ingest_file(
             article.embedding = embedding
             
             all_ids.append(str(article.id))
+            article_records.append(_article_payload(article))
             total_created += 1
     
     await db.commit()
@@ -235,7 +257,21 @@ async def ingest_file(
         message=f"Successfully ingested {total_created} article(s) from file",
         articles_created=total_created,
         article_ids=all_ids,
+        articles=article_records,
     )
+
+
+def _article_payload(article: LegalArticle) -> Dict[str, Any]:
+    """Return the stored article fields so API responses echo ingested content."""
+    return {
+        "id": str(article.id),
+        "document_title": article.document_title,
+        "article_number": article.article_number,
+        "content": article.content,
+        "domain": article.domain,
+        "hierarchy_id": article.hierarchy_id,
+        "meta_data": article.meta_data,
+    }
 
 
 def _parse_articles_from_text(content: str, document_title: str) -> List[Dict[str, str]]:
