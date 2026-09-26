@@ -1,8 +1,9 @@
 <script setup>
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { ElCard, ElForm, ElFormItem, ElInput, ElSelect, ElOption, ElButton, ElSwitch, ElRadioGroup, ElRadio, ElDivider, ElTabs, ElTabPane, ElTag, ElIcon, ElAlert, ElDescriptions, ElDescriptionsItem, ElSlider, ElColorPicker, ElTimePicker, ElDatePicker, ElUpload, ElDrawer } from 'element-plus'
 import { Setting, User, Lock, Bell, Moon, Sunny, Monitor, Brush, Coordinate, Box, Cloudy, Cpu, Key, Download, Upload as UploadIcon, Delete, Refresh, CircleCheck, Warning } from '@element-plus/icons-vue'
 import { confirmAction, showToast } from '@/utils/alerts'
+import { authApi } from '@/api'
 
 const activeTab = ref('general')
 const saving = ref(false)
@@ -131,11 +132,11 @@ const logLevels = [
 async function saveSettings(tab) {
   saving.value = true
   try {
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    await authApi.updatePreferences(JSON.parse(JSON.stringify(settings)))
     localStorage.setItem(`lex-dss-${tab}`, JSON.stringify(settings[tab]))
     showToast('success', `Pengaturan ${getTabLabel(tab)} berhasil disimpan`)
   } catch (error) {
-    showToast('error', 'Gagal menyimpan pengaturan')
+    showToast('error', error.response?.data?.detail || 'Gagal menyimpan pengaturan ke akun')
   } finally {
     saving.value = false
   }
@@ -148,10 +149,37 @@ async function resetSettings(tab) {
     confirmText: 'Ya, reset',
   })
   if (result.isConfirmed) {
+    try {
+      await authApi.deletePreference(tab)
+    } catch (error) {
+      showToast('error', error.response?.data?.detail || 'Gagal menghapus pengaturan tersimpan')
+      return
+    }
     resetToDefaults(tab)
+    localStorage.removeItem(`lex-dss-${tab}`)
     showToast('success', 'Pengaturan direset ke default')
   }
 }
+
+onMounted(async () => {
+  try {
+    const { data } = await authApi.getPreferences()
+    const saved = data.preferences || {}
+    for (const key of Object.keys(settings)) {
+      if (saved[key] && typeof saved[key] === 'object') Object.assign(settings[key], saved[key])
+    }
+  } catch (error) {
+    // Keep the screen usable before sign-in; saving requires an authenticated account.
+    for (const key of Object.keys(settings)) {
+      try {
+        const saved = JSON.parse(localStorage.getItem(`lex-dss-${key}`) || 'null')
+        if (saved) Object.assign(settings[key], saved)
+      } catch {
+        localStorage.removeItem(`lex-dss-${key}`)
+      }
+    }
+  }
+})
 
 function resetToDefaults(tab) {
   const defaults = {

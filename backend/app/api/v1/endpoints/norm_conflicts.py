@@ -7,7 +7,7 @@ from typing import Optional, List
 import uuid
 
 from app.core.database import get_db
-from app.core.security import get_current_active_user
+from app.core.security import get_current_active_user, require_roles
 from app.models.legal import NormConflict, LegalArticle
 from app.models.user import User
 
@@ -50,7 +50,7 @@ class NormConflictList(BaseModel):
 async def create_conflict(
     conflict_in: NormConflictCreate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_roles("admin")),
 ):
     source_result = await db.execute(select(LegalArticle).where(LegalArticle.id == conflict_in.source_article_id))
     source_article = source_result.scalar_one_or_none()
@@ -90,7 +90,7 @@ async def list_conflicts(
     source_article_id: Optional[uuid.UUID] = Query(None),
     target_article_id: Optional[uuid.UUID] = Query(None),
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_roles("admin", "auditor")),
 ):
     query = select(NormConflict).options(
         selectinload(NormConflict.source_article),
@@ -127,7 +127,7 @@ async def list_conflicts(
 async def get_conflict(
     conflict_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_roles("admin", "auditor")),
 ):
     result = await db.execute(
         select(NormConflict)
@@ -147,7 +147,7 @@ async def get_conflict(
 async def delete_conflict(
     conflict_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_roles("admin")),
 ):
     result = await db.execute(select(NormConflict).where(NormConflict.id == conflict_id))
     conflict = result.scalar_one_or_none()

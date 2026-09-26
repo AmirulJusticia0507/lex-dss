@@ -7,7 +7,7 @@ from typing import Optional, List
 import uuid
 
 from app.core.database import get_db
-from app.core.security import get_current_active_user
+from app.core.security import get_current_active_user, require_roles
 from app.models.legal import LegalHierarchy, LegalArticle
 from app.models.user import User
 
@@ -75,7 +75,7 @@ class LegalArticleList(BaseModel):
 async def create_hierarchy(
     hierarchy_in: LegalHierarchyCreate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_roles("admin")),
 ):
     hierarchy = LegalHierarchy(**hierarchy_in.model_dump())
     db.add(hierarchy)
@@ -97,7 +97,7 @@ async def list_hierarchy(
 async def create_article(
     article_in: LegalArticleCreate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_roles("admin")),
 ):
     article = LegalArticle(**article_in.model_dump())
     db.add(article)
@@ -167,7 +167,7 @@ async def update_article(
     article_id: uuid.UUID,
     article_in: LegalArticleUpdate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_roles("admin")),
 ):
     result = await db.execute(select(LegalArticle).where(LegalArticle.id == article_id))
     article = result.scalar_one_or_none()
@@ -187,7 +187,7 @@ async def update_article(
 async def delete_article(
     article_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_roles("admin")),
 ):
     result = await db.execute(select(LegalArticle).where(LegalArticle.id == article_id))
     article = result.scalar_one_or_none()

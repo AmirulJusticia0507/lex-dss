@@ -11,7 +11,7 @@ const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('access_token')
-    if (token) {
+    if (token && !config.headers.Authorization) {
       config.headers.Authorization = `Bearer ${token}`
     }
     return config
@@ -53,7 +53,23 @@ export const authApi = {
   register: (data) => api.post('/auth/register', data),
   logout: () => api.post('/auth/logout'),
   getProfile: () => api.get('/auth/profile'),
+  getProfileWithToken: (token) => api.get('/auth/profile', { headers: { Authorization: `Bearer ${token}` } }),
+  updateProfile: (data) => api.patch('/auth/profile', data),
+  changePassword: (data) => api.put('/auth/password', data),
+  getPreferences: () => api.get('/auth/preferences'),
+  updatePreferences: (preferences) => api.put('/auth/preferences', { preferences }),
+  resetPreferences: () => api.delete('/auth/preferences'),
+  deletePreference: (key) => api.delete(`/auth/preferences/${encodeURIComponent(key)}`),
   refreshToken: () => api.post('/auth/refresh'),
+}
+
+export const usersApi = {
+  getRoles: () => api.get('/users/roles'),
+  list: () => api.get('/users/'),
+  create: (data) => api.post('/users/', data),
+  update: (id, data) => api.patch(`/users/${id}`, data),
+  deactivate: (id) => api.delete(`/users/${id}`),
+  activate: (id) => api.post(`/users/${id}/activate`),
 }
 
 export default api

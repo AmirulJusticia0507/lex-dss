@@ -9,7 +9,7 @@ from datetime import datetime
 import logging
 
 from app.core.database import get_db
-from app.core.security import get_current_active_user
+from app.core.security import get_current_active_user, require_roles
 from app.models.legal import LegalArticle, LegalHierarchy, NormConflict
 from app.models.audit import DecisionAuditLog, JudicialDeviationReport
 from app.models.user import User
@@ -634,7 +634,7 @@ async def get_conflicts(
     conflict_type: Optional[str] = Query(None),
     severity: Optional[str] = Query(None),
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_roles("admin", "auditor")),
 ):
     query = select(NormConflict).options(
         selectinload(NormConflict.source_article),
@@ -686,7 +686,7 @@ async def get_conflicts(
 async def get_conflict_detail(
     conflict_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_roles("admin", "auditor")),
 ):
     result = await db.execute(
         select(NormConflict)

@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMenu, ElMenuItem, ElSubMenu, ElIcon, ElAvatar, ElDropdown, ElDropdownMenu, ElDropdownItem, ElTooltip } from 'element-plus'
 import {
@@ -7,14 +7,25 @@ import {
 } from '@element-plus/icons-vue'
 import { useUIStore } from '@/stores'
 import { useAuthStore } from '@/stores'
+import { authApi } from '@/api'
 
 const router = useRouter()
 const route = useRoute()
 const uiStore = useUIStore()
 const authStore = useAuthStore()
+onMounted(async () => {
+  if (!authStore.token) return
+  try {
+    const { data } = await authApi.getProfile()
+    authStore.user = data
+  } catch {
+    authStore.logout()
+  }
+})
 
 const isCollapsed = ref(false)
 const activeMenu = ref(route.path)
+const isLoginRoute = computed(() => route.name === 'Login')
 watch(() => route.path, path => { activeMenu.value = path })
 const notifications = ref([
   { id: 1, title: 'Analisis kontradiksi selesai', message: 'Ditemukan 3 kontradiksi baru pada UU No. 12/2011', time: '5 menit lalu', read: false, type: 'warning' },
@@ -29,6 +40,7 @@ const menuItems = [
   { path: '/conflict-checker', label: 'Conflict Checker', icon: Warning },
   { path: '/dss-panel', label: 'DSS Panel', icon: DataAnalysis },
   { path: '/legal-library', label: 'Legal Library', icon: Collection },
+  { path: '/profile', label: 'Profil & Akun', icon: User },
   { path: '/settings', label: 'Pengaturan', icon: Setting },
 ]
 
@@ -73,7 +85,7 @@ function getNotificationTypeClass(type) {
 
 <template>
   <el-container class="app-container">
-    <el-aside :width="isCollapsed ? '64px' : '280px'" class="sidebar">
+    <el-aside v-if="!isLoginRoute" :width="isCollapsed ? '64px' : '280px'" class="sidebar">
       <div class="logo-container">
 <div class="logo-icon">
   <svg width="24" height="24" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -108,14 +120,14 @@ function getNotificationTypeClass(type) {
           <el-icon><User /></el-icon>
         </div>
         <div v-show="!isCollapsed" class="user-info">
-          <div class="user-name">Hukum Online</div>
-          <div class="user-role">Legal Analyst</div>
+          <div class="user-name">{{ authStore.user?.full_name || authStore.user?.email || 'Pengguna' }}</div>
+          <div class="user-role">{{ authStore.user?.role || 'user' }}</div>
         </div>
       </div>
     </el-aside>
 
     <el-container class="app-body">
-      <el-header class="header">
+      <el-header v-if="!isLoginRoute" class="header">
         <div class="header-left">
           <el-button
             v-if="!isCollapsed"
@@ -190,16 +202,16 @@ function getNotificationTypeClass(type) {
           <el-dropdown trigger="click">
             <span class="user-dropdown-trigger">
               <el-avatar size="small" src="https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png" />
-              <span v-show="!isCollapsed" class="username">Admin</span>
+              <span v-show="!isCollapsed" class="username">{{ authStore.user?.full_name || authStore.user?.email || 'Akun' }}</span>
               <el-icon class="caret-icon"><Message /></el-icon>
             </span>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item>
+                <el-dropdown-item @click="router.push('/profile')">
                   <el-icon><User /></el-icon>
                   <span>Profil</span>
                 </el-dropdown-item>
-                <el-dropdown-item>
+                <el-dropdown-item @click="router.push('/profile#security')">
                   <el-icon><Lock /></el-icon>
                   <span>Keamanan</span>
                 </el-dropdown-item>
@@ -238,6 +250,7 @@ export default {
         '/conflict-checker': 'Conflict Checker',
         '/dss-panel': 'DSS Panel',
         '/legal-library': 'Legal Library',
+        '/profile': 'Profil & Akun',
         '/settings': 'Pengaturan',
       }
       return titles[this.$route.path] || 'Lex-DSS'

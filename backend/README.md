@@ -94,6 +94,16 @@ pip install -r requirements.txt
 alembic upgrade head
 ```
 
+### 4a. Bootstrap Administrator
+
+After the database is configured and migrated, create the first administrator from the backend directory:
+
+```bash
+python scripts/create_admin.py admin@example.org
+```
+
+The script prompts for the password without echoing it. Public registration creates only `user` accounts; only an administrator can assign the `auditor` or `admin` role.
+
 ### 5. Seed Initial Data (Optional)
 
 ```bash
@@ -119,6 +129,11 @@ Server berjalan di: http://localhost:8000
 - `POST /api/v1/auth/register` - Register user
 - `POST /api/v1/auth/login` - Login & get JWT token
 - `GET /api/v1/auth/me` - Current user profile
+- `GET /api/v1/auth/profile` - Current user profile
+- `PATCH /api/v1/auth/profile` - Update own name, email, or institution
+- `PUT /api/v1/auth/password` - Change own password
+- `GET/PUT/DELETE /api/v1/auth/preferences` - Read, save, or clear own settings
+- `/api/v1/users` - Admin-only account CRUD and role/permission listing
 
 ### Legal Articles
 - `POST /api/v1/legal-articles/hierarchy` - Create hierarchy type

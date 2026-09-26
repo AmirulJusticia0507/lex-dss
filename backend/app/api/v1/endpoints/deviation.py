@@ -8,7 +8,7 @@ import uuid
 from datetime import datetime
 
 from app.core.database import get_db
-from app.core.security import get_current_active_user
+from app.core.security import get_current_active_user, require_roles
 from app.models.audit import JudicialDeviationReport
 from app.models.user import User
 from app.engine.deviation import calculate_deviation_score, DeviationScoreRequest
@@ -93,7 +93,7 @@ async def score_deviation(
 async def create_deviation_report(
     report_in: JudicialDeviationReportCreate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_roles("admin", "auditor")),
 ):
     report = JudicialDeviationReport(**report_in.model_dump())
     db.add(report)
@@ -112,7 +112,7 @@ async def list_deviation_reports(
     start_date: Optional[datetime] = Query(None),
     end_date: Optional[datetime] = Query(None),
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_roles("admin", "auditor")),
 ):
     query = select(JudicialDeviationReport)
     
@@ -148,7 +148,7 @@ async def list_deviation_reports(
 async def get_deviation_report(
     report_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_roles("admin", "auditor")),
 ):
     result = await db.execute(select(JudicialDeviationReport).where(JudicialDeviationReport.id == report_id))
     report = result.scalar_one_or_none()
@@ -160,7 +160,7 @@ async def get_deviation_report(
 @router.get("/reports/stats/summary", response_model=dict)
 async def get_deviation_stats(
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_roles("admin", "auditor")),
 ):
     total_result = await db.execute(select(func.count(JudicialDeviationReport.id)))
     total = total_result.scalar()

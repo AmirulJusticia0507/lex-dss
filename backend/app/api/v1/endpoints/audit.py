@@ -8,7 +8,7 @@ import uuid
 from datetime import datetime
 
 from app.core.database import get_db
-from app.core.security import get_current_active_user
+from app.core.security import get_current_active_user, require_roles
 from app.models.audit import DecisionAuditLog
 from app.models.user import User
 
@@ -76,6 +76,11 @@ async def list_audit_logs(
     current_user: User = Depends(get_current_active_user),
 ):
     query = select(DecisionAuditLog)
+
+    if current_user.role not in {"admin", "auditor"} and not current_user.is_superuser:
+        if user_id and user_id != current_user.id:
+            raise HTTPException(status_code=403, detail="You can only view your own audit records")
+        query = query.where(DecisionAuditLog.user_id == current_user.id)
     
     if is_deviated is not None:
         query = query.where(DecisionAuditLog.is_deviated == is_deviated)
@@ -113,13 +118,15 @@ async def get_audit_log(
     log = result.scalar_one_or_none()
     if not log:
         raise HTTPException(status_code=404, detail="Audit log not found")
+    if current_user.role not in {"admin", "auditor"} and not current_user.is_superuser and log.user_id != current_user.id:
+        raise HTTPException(status_code=404, detail="Audit log not found")
     return log
 
 
 @router.get("/deviations/summary", response_model=dict)
 async def get_deviation_summary(
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_roles("admin", "auditor")),
 ):
     total_result = await db.execute(select(func.count(DecisionAuditLog.id)))
     total = total_result.scalar()

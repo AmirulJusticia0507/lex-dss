@@ -8,7 +8,7 @@ from datetime import datetime
 import json
 
 from app.core.database import get_db
-from app.core.security import get_current_active_user
+from app.core.security import require_roles
 from app.models.legal import LegalArticle, LegalHierarchy
 from app.models.user import User
 from app.engine.rag import generate_embedding
@@ -51,7 +51,7 @@ async def ingest_document(
     request: DocumentIngestRequest,
     background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_roles("admin")),
 ):
     articles_created = 0
     article_ids = []
@@ -112,7 +112,7 @@ async def ingest_batch(
     request: BatchIngestRequest,
     background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_roles("admin")),
 ):
     total_created = 0
     all_ids = []
@@ -177,7 +177,7 @@ async def ingest_file(
     domain: Optional[str] = Form(None),
     hierarchy_id: Optional[int] = Form(None),
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_roles("admin")),
 ):
     content = await file.read()
     
@@ -315,7 +315,7 @@ def _parse_articles_from_text(content: str, document_title: str) -> List[Dict[st
 async def update_single_embedding(
     article_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_roles("admin")),
 ):
     result = await db.execute(select(LegalArticle).where(LegalArticle.id == article_id))
     article = result.scalar_one_or_none()
@@ -333,7 +333,7 @@ async def update_single_embedding(
 async def update_batch_embeddings(
     article_ids: List[uuid.UUID],
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_roles("admin")),
 ):
     updated = 0
     for aid in article_ids:

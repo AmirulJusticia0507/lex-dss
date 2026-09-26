@@ -2,6 +2,12 @@ import { createRouter, createWebHistory } from 'vue-router'
 
 const routes = [
   {
+    path: '/login',
+    name: 'Login',
+    component: () => import('@/views/Login.vue'),
+    meta: { title: 'Masuk', public: true },
+  },
+  {
     path: '/',
     redirect: '/dashboard',
   },
@@ -36,6 +42,12 @@ const routes = [
     meta: { title: 'Pengaturan', icon: 'Setting' },
   },
   {
+    path: '/profile',
+    name: 'Profile',
+    component: () => import('@/views/Profile.vue'),
+    meta: { title: 'Profil & Akun', icon: 'User' },
+  },
+  {
     path: '/:pathMatch(.*)*',
     redirect: '/dashboard',
   },
@@ -46,9 +58,12 @@ const router = createRouter({
   routes,
 })
 
-router.beforeEach((to, from, next) => {
+router.beforeEach((to) => {
   document.title = `${to.meta.title || 'Dashboard'} | Lex-DSS`
-  next()
+  const hasToken = Boolean(localStorage.getItem('access_token'))
+  if (!to.meta.public && !hasToken) return { name: 'Login' }
+  if (to.name === 'Login' && hasToken) return { name: 'Dashboard' }
+  return true
 })
 
 export default router

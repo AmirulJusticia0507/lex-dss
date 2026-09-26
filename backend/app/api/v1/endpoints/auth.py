@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from pydantic import BaseModel, EmailStr
-from datetime import timedelta
+from pydantic import BaseModel, EmailStr, Field
+from datetime import timedelta, datetime
+import uuid
 from jose import jwt, JWTError
 
 from app.core.database import get_db
@@ -21,10 +22,9 @@ router = APIRouter()
 
 class UserCreate(BaseModel):
     email: EmailStr
-    password: str
-    full_name: str | None = None
-    role: str = "user"
-    institution: str | None = None
+    password: str = Field(..., min_length=8, max_length=128)
+    full_name: str | None = Field(None, max_length=255)
+    institution: str | None = Field(None, max_length=255)
 
 
 class UserLogin(BaseModel):
@@ -41,13 +41,30 @@ class RefreshTokenRequest(BaseModel):
     refresh_token: str
 
 
+class ProfileUpdate(BaseModel):
+    email: EmailStr | None = None
+    full_name: str | None = Field(None, max_length=255)
+    institution: str | None = Field(None, max_length=255)
+
+
+class PasswordChangeRequest(BaseModel):
+    current_password: str
+    new_password: str = Field(..., min_length=8, max_length=128)
+
+
+class PreferencesRequest(BaseModel):
+    preferences: dict
+
+
 class UserResponse(BaseModel):
-    id: str
+    id: uuid.UUID
     email: str
     full_name: str | None
     role: str
     institution: str | None
     is_active: bool
+    created_at: datetime | None = None
+    last_login: datetime | None = None
     
     class Config:
         from_attributes = True
@@ -67,7 +84,7 @@ async def register(user_in: UserCreate, db: AsyncSession = Depends(get_db)):
         email=user_in.email,
         hashed_password=get_password_hash(user_in.password),
         full_name=user_in.full_name,
-        role=user_in.role,
+        role="user",
         institution=user_in.institution,
     )
     db.add(user)
@@ -92,6 +109,9 @@ async def login(user_in: UserLogin, db: AsyncSession = Depends(get_db)):
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Inactive user",
         )
+
+    user.last_login = datetime.utcnow()
+    await db.commit()
     
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
@@ -143,3 +163,84 @@ async def read_users_me(current_user: User = Depends(get_current_active_user)):
 @router.get("/profile", response_model=UserResponse)
 async def read_profile(current_user: User = Depends(get_current_active_user)):
     return current_user
+
+
+@router.patch("/profile", response_model=UserResponse)
+async def update_profile(
+    profile_in: ProfileUpdate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    changes = profile_in.model_dump(exclude_unset=True)
+    if "email" in changes and changes["email"] is None:
+        raise HTTPException(status_code=422, detail="Email cannot be empty")
+    if "email" in changes and changes["email"] != current_user.email:
+        existing = await db.scalar(select(User).where(User.email == changes["email"]))
+        if existing:
+            raise HTTPException(status_code=409, detail="Email already registered")
+    for field, value in changes.items():
+        setattr(current_user, field, value)
+    await db.commit()
+    await db.refresh(current_user)
+    return current_user
+
+
+@router.put("/password")
+async def change_password(
+    request: PasswordChangeRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    if not verify_password(request.current_password, current_user.hashed_password):
+        raise HTTPException(status_code=400, detail="Current password is incorrect")
+    current_user.hashed_password = get_password_hash(request.new_password)
+    await db.commit()
+    return {"message": "Password updated successfully"}
+
+
+@router.get("/preferences")
+async def get_preferences(current_user: User = Depends(get_current_active_user)):
+    return {"preferences": (current_user.meta_data or {}).get("preferences", {})}
+
+
+@router.put("/preferences")
+async def save_preferences(
+    request: PreferencesRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    meta_data = dict(current_user.meta_data or {})
+    meta_data["preferences"] = request.preferences
+    current_user.meta_data = meta_data
+    await db.commit()
+    return {"preferences": request.preferences}
+
+
+@router.delete("/preferences")
+async def reset_preferences(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    meta_data = dict(current_user.meta_data or {})
+    meta_data.pop("preferences", None)
+    current_user.meta_data = meta_data or None
+    await db.commit()
+    return {"preferences": {}}
+
+
+@router.delete("/preferences/{preference_key}")
+async def delete_preference(
+    preference_key: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    meta_data = dict(current_user.meta_data or {})
+    preferences = dict(meta_data.get("preferences", {}))
+    preferences.pop(preference_key, None)
+    if preferences:
+        meta_data["preferences"] = preferences
+    else:
+        meta_data.pop("preferences", None)
+    current_user.meta_data = meta_data or None
+    await db.commit()
+    return {"preferences": preferences}

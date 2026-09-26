@@ -9,6 +9,7 @@ from app.api.v1.endpoints import (
     dss,
     ingest,
     analysis,
+    users,
 )
 
 __all__ = [
@@ -22,4 +23,5 @@ __all__ = [
     "dss",
     "ingest",
     "analysis",
+    "users",
 ]

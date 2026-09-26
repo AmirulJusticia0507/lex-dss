@@ -13,7 +13,7 @@ from sqlalchemy.orm import selectinload
 from sqlalchemy import select
 
 from app.core.database import get_db
-from app.core.security import get_current_active_user
+from app.core.security import get_current_active_user, require_roles
 from app.models.legal import LegalArticle, NormConflict
 from app.models.user import User
 from app.services.lex_integrity_service import LexIntegrityService
@@ -230,7 +230,7 @@ async def resolve_conflict(
     conflict_id: uuid.UUID,
     payload: ResolveConflictRequest,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_roles("admin", "auditor")),
 ):
     """Tandai temuan kontradiksi sebagai ditinjau/diatasi (audit trail)."""
     resolution_status = (payload.status or "").upper()

@@ -6,7 +6,7 @@ from typing import Optional, List
 import uuid
 
 from app.core.database import get_db
-from app.core.security import get_current_active_user
+from app.core.security import get_current_active_user, require_roles
 from app.models.legal import LegalArticle
 from app.models.user import User
 from app.engine.rag import search_similar_articles, generate_embedding
@@ -100,7 +100,7 @@ async def create_embedding(
 async def update_article_embedding(
     article_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_roles("admin")),
 ):
     result = await db.execute(select(LegalArticle).where(LegalArticle.id == article_id))
     article = result.scalar_one_or_none()
@@ -118,7 +118,7 @@ async def update_article_embedding(
 async def batch_update_embeddings(
     article_ids: List[uuid.UUID],
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_roles("admin")),
 ):
     updated = 0
     for article_id in article_ids:

@@ -69,3 +69,22 @@ async def get_current_active_user(
     if not current_user.is_active:
         raise HTTPException(status_code=400, detail="Inactive user")
     return current_user
+
+
+ROLE_PERMISSIONS = {
+    "user": ["analyze", "read_own", "manage_own_profile", "manage_own_settings"],
+    "auditor": ["analyze", "read_own", "read_audit", "read_deviation", "manage_own_profile", "manage_own_settings"],
+    "admin": ["*"],
+}
+
+
+def require_roles(*roles: str):
+    async def role_guard(current_user: User = Depends(get_current_active_user)) -> User:
+        if current_user.is_superuser or current_user.role in roles:
+            return current_user
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Insufficient permissions for this action",
+        )
+
+    return role_guard
