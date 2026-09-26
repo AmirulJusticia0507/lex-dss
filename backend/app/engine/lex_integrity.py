@@ -70,6 +70,25 @@ DEFAULT_HIERARCHY_RANKS: Dict[str, int] = {
     "PERWALI": 9,
 }
 
+# Alias bentuk nama resmi peraturan (dipakai untuk memetakan "Peraturan Presiden",
+# "Peraturan Menteri", dan sejenisnya ke rank yang sama).
+HIERARCHY_ALIASES: List[tuple] = [
+    ("UNDANG-UNDANG DASAR", 1),
+    ("TAP MPR", 2),
+    ("PUTUSAN MPR", 2),
+    ("UNDANG-UNDANG", 3),
+    ("PERATURAN PEMERINTAH", 4),
+    ("PERATURAN PRESIDEN", 5),
+    ("KEPUTUSAN PRESIDEN", 5),
+    ("PERATURAN MENTERI", 6),
+    ("PERATURAN DAERAH KHUSUS", 7),
+    ("PERATURAN DAERAH ISTIMEWA", 7),
+    ("PERATURAN DAERAH", 7),
+    ("PERATURAN GUBERNUR", 7),
+    ("PERATURAN BUPATI", 8),
+    ("PERATURAN WALIKOTA", 9),
+]
+
 PROHIBITION_MARKERS: Set[str] = {
     "dilarang",
     "dilarangi",
@@ -105,7 +124,7 @@ REPEAL_MARKERS: Set[str] = {
 }
 
 SPECIFIC_MARKERS = ("khusus", "tertentu", "spesifik", "terinci", "rinci")
-GENERAL_MARKERS = ("umumnya", "pada umumnya", "secara umum", "lazimnya", "kebijakan umum")
+GENERAL_MARKERS = ("umum", "lazim", "pada umumnya", "secara umum")
 
 STOPWORDS: Set[str] = {
     "yang", "untuk", "dengan", "dari", "pada", "adalah", "akan", "dapat", "tidak",
@@ -200,6 +219,9 @@ class LexIntegrityEngine:
             return None
 
         token = hierarchy_type.upper()
+        for alias, rank in HIERARCHY_ALIASES:
+            if re.search(rf"(?<![A-Z]){re.escape(alias)}(?![A-Z])", token):
+                return rank
         for label, value in self.hierarchy_ranks.items():
             if re.search(rf"(?<![A-Z]){re.escape(label)}(?![A-Z])", token):
                 return value
@@ -245,7 +267,9 @@ class LexIntegrityEngine:
             return None
         if not self.is_special_vs_general(norm_a, norm_b):
             return None
-        if not self.has_contradiction(norm_a.content, norm_b.content):
+        # Penyimpangan kaidah khusus tidak selalu berupa kata negasi, cukup
+        # Penyimpangan kaidah khusus tidak selalu berupa kata negasi; cukup
+        if self.topic_overlap(norm_a.content, norm_b.content) < self.topic_overlap_threshold:
             return None
 
         return self._build(
