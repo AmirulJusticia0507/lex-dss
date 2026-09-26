@@ -1,0 +1,69 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lex-dss-backend"
+version = "0.1.0"
+description = "Lex Decision Support System - Backend API"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi==0.109.0",
+    "uvicorn[standard]==0.27.0",
+    "pydantic==2.5.3",
+    "pydantic-settings==2.1.0",
+    "sqlalchemy==2.0.25",
+    "alembic==1.13.1",
+    "asyncpg==0.29.0",
+    "psycopg2-binary==2.9.9",
+    "pgvector==0.2.3",
+    "python-jose[cryptography]==3.3.0",
+    "passlib[bcrypt]==1.7.4",
+    "python-multipart==0.0.6",
+    "httpx==0.26.0",
+    "langchain==0.1.12",
+    "langchain-openai==0.0.5",
+    "langchain-community==0.0.18",
+    "llama-index==0.9.30",
+    "openai==1.12.0",
+    "tiktoken==0.6.0",
+    "numpy==1.26.4",
+    "pandas==2.2.0",
+    "python-dotenv==1.0.0",
+    "pydantic-extra-types==2.4.0",
+    "email-validator==2.1.0.post1",
+    "tenacity==8.2.3",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest==7.4.4",
+    "pytest-asyncio==0.23.3",
+    "pytest-cov==4.1.0",
+    "httpx==0.26.0",
+    "ruff==0.1.15",
+    "mypy==1.7.1",
+    "black==23.12.1",
+    "isort==5.13.2",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+select = ["E", "F", "I", "UP", "W"]
+ignore = ["E501"]
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+
+[tool.isort]
+profile = "black"
+line_length = 100
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
