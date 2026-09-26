@@ -31,7 +31,7 @@ api.interceptors.response.use(
 )
 
 export const legalApi = {
-  analyzeConflict: (data) => api.post('/legal/analyze-conflict', data),
+  analyzeConflict: (data) => api.post('/legal/analyze-conflict', data, { timeout: 180000 }),
   getConflicts: (params) => api.get('/legal/conflicts', { params }),
   getConflictDetail: (id) => api.get(`/legal/conflicts/${id}`),
   getLegalArticles: (params) => api.get('/legal/articles', { params }),

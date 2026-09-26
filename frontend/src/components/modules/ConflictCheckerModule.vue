@@ -1,16 +1,16 @@
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
-import { ElForm, ElFormItem, ElInput, ElButton, ElSelect, ElOption, ElRadioGroup, ElRadio, ElCard, ElTable, ElTableColumn, ElTag, ElDivider, ElTabs, ElTabPane, ElAlert, ElSteps, ElStep, ElDescriptions, ElDescriptionsItem, ElIcon, ElTooltip, ElPopover, ElDrawer, ElScrollbar } from 'element-plus'
-import { Search, Delete, Document, Warning, CircleCheck, CircleClose, QuestionFilled, ArrowRight, Upload, Download, Refresh, Setting } from '@element-plus/icons-vue'
+import { ref, computed, onMounted } from 'vue'
+import { ElForm, ElFormItem, ElInput, ElButton, ElSelect, ElOption, ElRadioGroup, ElRadio, ElCard, ElTag, ElAlert, ElSteps, ElStep, ElDescriptions, ElDescriptionsItem, ElIcon } from 'element-plus'
+import { Search, Delete, Document, Warning, ArrowRight, Download, Refresh, Rank } from '@element-plus/icons-vue'
 import { useLegalStore } from '@/stores'
-import ConflictMatrix from '@/components/ConflictMatrix.vue'
+import { showToast } from '@/utils/alerts'
 import LegalOpinionPanel from '@/components/LegalOpinionPanel.vue'
-import RiskScoreCard from '@/components/RiskScoreCard.vue'
 
 const legalStore = useLegalStore()
 
 const activeStep = ref(1)
 const analysisId = ref(null)
+const draftFormRef = ref(null)
 const draftText = ref('')
 const analysisType = ref('comprehensive')
 const selectedDomain = ref('all')
@@ -21,22 +21,28 @@ const conflicts = ref([])
 const references = ref([])
 const aiRecommendation = ref(null)
 const riskAssessment = ref(null)
-const loading = ref(false)
 const analyzing = ref(false)
+
+const formModel = computed(() => ({
+  draftText: draftText.value,
+  analysisType: analysisType.value,
+  domain: selectedDomain.value,
+  jurisdiction: jurisdiction.value,
+}))
 
 const draftRules = {
   draftText: [
     { required: true, message: 'Silakan masukkan teks draf hukum', trigger: 'blur' },
     { min: 50, message: 'Teks draf minimal 50 karakter', trigger: 'blur' },
   ],
+  analysisType: [{ required: true, message: 'Silakan pilih tipe analisis', trigger: 'change' }],
 }
 
 const guideSteps = [
-  { title: 'Preprocessing', desc: 'Teks draf dibersihkan dan dipecah per pasal.' },
-  { title: 'Lex Integrity Check', desc: 'Kontradiksi hierarki & norma dideteksi otomatis.' },
-  { title: 'Vector Search (RAG)', desc: 'Pasal hukum relevan diambil dari basis data.' },
-  { title: 'AI Reasoning', desc: 'Legal opinion & ratio decidendi disintesis LLM.' },
-  { title: 'Risk Assessment', desc: 'Risk score 0-100 dan rekomendasi mitigasi dihitung.' },
+  { title: 'Pencarian Norma', desc: 'Draf digunakan untuk mencari pasal yang relevan di basis data hukum.' },
+  { title: 'Lex Integrity Check', desc: 'Mesin membandingkan isi draf dengan norma kandidat yang ditemukan.' },
+  { title: 'AI Reasoning', desc: 'Temuan dan referensi menjadi konteks rekomendasi hukum.' },
+  { title: 'Risk Assessment', desc: 'Skor risiko dihitung dari temuan dan dilengkapi langkah mitigasi.' },
 ]
 
 const analysisTypes = [
@@ -104,111 +110,41 @@ Perusahaan berhak memutuskan hubungan kerja sewaktu-waktu tanpa alasan dan tanpa
 }
 
 async function handleAnalyze() {
-  const form = document.querySelector('#draftForm')
-  if (!form) return
+  if (!draftFormRef.value || analyzing.value) return
 
-  form.validate((valid) => {
-    if (!valid) return
+  const valid = await draftFormRef.value.validate().catch(() => false)
+  if (!valid) return
 
-    analyzing.value = true
-    activeStep.value = 2
+  analyzing.value = true
+  activeStep.value = 2
 
-    setTimeout(async () => {
-      try {
-        const mockResult = generateMockAnalysis(draftText.value, analysisType.value)
-        analysisResult.value = mockResult
-        conflicts.value = mockResult.conflicts || []
-        references.value = mockResult.references || []
-        aiRecommendation.value = mockResult.ai_recommendation || null
-        riskAssessment.value = mockResult.risk_assessment || null
-        analysisId.value = 'ANL-' + Date.now()
-        activeStep.value = 3
-      } catch (error) {
-        console.error('Analysis failed:', error)
-        activeStep.value = 1
-      } finally {
-        analyzing.value = false
-      }
-    }, 2000)
-  })
-}
+  try {
+    const result = await legalStore.analyzeConflict({
+      draft_text: draftText.value.trim(),
+      analysis_type: analysisType.value,
+      domain: selectedDomain.value === 'all' ? null : selectedDomain.value,
+      jurisdiction: jurisdiction.value,
+    })
 
-function generateMockAnalysis(text, type) {
-  const conflicts = [
-    {
-      id: 'CONF-001',
-      conflict_type: 'LEX_SUPERIOR',
-      severity: 'HIGH',
-      description: 'Pasal 12 ayat (2) Perda mengatur pidana penjara, bertentangan dengan Pasal 7 UU No. 12/2011 yang melarang Perda mengatur pidana penjara',
-      source_article: { id: 'ART-001', document_title: 'UU No. 12/2011', article_number: 'Pasal 7', content: 'Peraturan Daerah tidak dapat mengatur pidana penjara', domain: 'HTN', hierarchy_rank: 3 },
-      target_article: { id: 'ART-002', document_title: 'Perda No. 5/2023', article_number: 'Pasal 12', content: 'Wajib Pajak yang sengaja tidak mendaftarkan usahanya dipidana kurangan 1 tahun', domain: 'HTN', hierarchy_rank: 5 },
-      created_at: new Date().toISOString(),
-    },
-    {
-      id: 'CONF-002',
-      conflict_type: 'DIRECT_CONTRADICTION',
-      severity: 'HIGH',
-      description: 'Klausula waiver hak pada Pasal 5 bertentangan dengan Pasal 1320 KUHPerdata tentang syarat sah perjanjian',
-      source_article: { id: 'ART-003', document_title: 'KUHPerdata', article_number: 'Pasal 1320', content: 'Untuk sahnya suatu perjanjian diperlukan: 1. Sepakat; 2. Cakap; 3. Suatu hal; 4. Halalan', domain: 'PERDATA', hierarchy_rank: 4 },
-      target_article: { id: 'ART-004', document_title: 'PKWT Draft', article_number: 'Pasal 5', content: 'Pekerja tidak berhak mengajukan gugatan apapun terhadap Perusahaan (klausula waiver hak)', domain: 'PERDATA', hierarchy_rank: 6 },
-      created_at: new Date().toISOString(),
-    },
-    {
-      id: 'CONF-003',
-      conflict_type: 'LEX_SPECIALIS',
-      severity: 'MEDIUM',
-      description: 'Pasal 280 Draft KUHP mengatur sanksi penyebaran informasi bohong, tumpang tindih dengan Pasal 27 UU ITE',
-      source_article: { id: 'ART-005', document_title: 'UU ITE', article_number: 'Pasal 27', content: 'Setiap orang sengaja menyebarkan informasi bohong... dipidana penjara 6 tahun', domain: 'PIDANA', hierarchy_rank: 3 },
-      target_article: { id: 'ART-006', document_title: 'Draft KUHP Baru', article_number: 'Pasal 280', content: 'Setiap orang sengaja melanggar UU ITE dengan menyebarkan informasi bohong dipidana 6 tahun', domain: 'PIDANA', hierarchy_rank: 3 },
-      created_at: new Date().toISOString(),
-    },
-  ]
-
-  const references = [
-    { id: 'REF-001', document_title: 'UU No. 12/2011', article_number: 'Pasal 7', content: 'Peraturan Daerah tidak dapat mengatur pidana penjara dan pidana kurungan.', domain: 'HTN', hierarchy_rank: 3, similarity_score: 0.95 },
-    { id: 'REF-002', document_title: 'KUHPerdata', article_number: 'Pasal 1320', content: 'Untuk sahnya suatu perjanjian diperlukan: 1. Sepakat; 2. Cakap; 3. Suatu hal; 4. Halalan.', domain: 'PERDATA', hierarchy_rank: 4, similarity_score: 0.88 },
-    { id: 'REF-003', document_title: 'KUHPerdata', article_number: 'Pasal 1337', content: 'Perjanjian yang dibuat untuk hal yang tidak halal, atau bertentangan dengan ketertiban umum atau kesusilaan, adalah batal demi hukum.', domain: 'PERDATA', hierarchy_rank: 4, similarity_score: 0.82 },
-    { id: 'REF-004', document_title: 'UU ITE', article_number: 'Pasal 27', content: 'Setiap orang dengan sengaja dan tanpa hak mendistribusikan/mentransmisikan/menyebarkan informasi bohong...', domain: 'PIDANA', hierarchy_rank: 3, similarity_score: 0.92 },
-    { id: 'REF-005', document_title: 'UUD 1945', article_number: 'Pasal 28D', content: 'Setiap orang berhak atas pengakuan, jaminan, perlindungan, dan kepastian hukum yang adil serta perlakuan yang sama di hadapan hukum.', domain: 'HTN', hierarchy_rank: 1, similarity_score: 0.75 },
-  ]
-
-  const aiRecommendation = {
-    summary: 'Draf Perda Pajak Daerah mengandung kontradiksi serius dengan hierarki perundang-undangan. Pasal 12 ayat (2) mengatur pidana penjara yang dilarang oleh UU No. 12/2011. Disarankan revisi sanksi ke pidana denda atau administratif.',
-    risk_level: 'HIGH',
-    confidence_score: 0.92,
-    legal_basis: [
-      { id: 1, article_reference: 'Pasal 7 UU No. 12/2011', explanation: 'Perda tidak boleh mengatur pidana penjara/kurungan' },
-      { id: 2, article_reference: 'Pasal 1320 KUHPerdata', explanation: 'Syarat sah perjanjian tidak boleh dikecualikan' },
-      { id: 3, article_reference: 'Pasal 1 ayat 1 KUHP', explanation: 'Asas legalitas: tidak ada pidana tanpa undang-undang' },
-    ],
-    ratio_decidendi: 'Berdasarkan asas Lex Superior Derogat Legi Inferiori (Pasal 7 UU No. 12/2011), Peraturan Daerah tidak memiliki kewenangan mengatur pidana penjara. Sanksi pidana hanya dapat diatur oleh Undang-Undang. Klausula waiver hak dalam perjanjian kerja bertentangan dengan ketertiban umum (Pasal 1337 KUHPerdata) dan syarat sah perjanjian (Pasal 1320 KUHPerdata).',
-    recommendations: [
-      'Hapus ketentuan pidana penjara pada Pasal 12 ayat (2), ganti dengan sanksi administratif/denda',
-      'Hapus klausula waiver hak (Pasal 5), tambahkan klausula penyelesaian perselisihan via mediasi/arbitrase',
-      'Tambahkan tunjangan hari raya (THR) minimal sesuai UU No. 13/2003',
-      'Perpanjang masa pemberitahuan PHK minimal 30 hari sesuai UU Cipta Kerja',
-      'Konsultasikan revisi dengan Kemenkumham dan DPRD setempat',
-    ],
+    analysisResult.value = result
+    conflicts.value = result.conflicts || []
+    references.value = result.references || []
+    aiRecommendation.value = result.ai_recommendation || null
+    riskAssessment.value = result.risk_assessment || null
+    analysisId.value = result.analysis_id
+    activeStep.value = 3
+    showToast('success', 'Analisis berhasil diselesaikan')
+  } catch (error) {
+    const detail = error.response?.data?.detail
+    const message = typeof detail === 'string'
+      ? detail
+      : detail?.message || error.response?.data?.message || error.message || 'Analisis gagal dijalankan'
+    console.error('Analysis failed:', error)
+    activeStep.value = 1
+    showToast('error', message)
+  } finally {
+    analyzing.value = false
   }
-
-  const riskAssessment = {
-    score: 78,
-    level: 'TINGGI',
-    factors: [
-      { id: 1, title: 'Pelanggaran Hierarki Perundangan', description: 'Perda mengatur pidana penjara (dilarang UU No. 12/2011)', severity: 'HIGH' },
-      { id: 2, title: 'Klausula Tidak Sah Perjanjian', description: 'Waiver hak pekerja bertentangan Pasal 1320 & 1337 KUHPerdata', severity: 'HIGH' },
-      { id: 3, title: 'Tumpang Tindih Sanksi Pidana', description: 'Pasal 280 Draft KUHP overlap dengan UU ITE', severity: 'MEDIUM' },
-      { id: 4, title: 'Ketidaksesuaian Standar Buruh', description: 'Gaji di bawah UMK, tidak ada THR, PHK sembarangan', severity: 'MEDIUM' },
-    ],
-    mitigation: [
-      'Revisi Pasal 12: hapus pidana penjara, gunakan sanksi administratif',
-      'Revisi Pasal 5: hapus klausula waiver, tambahkan mekanisme bande',
-      'Harmonisasi Pasal 280 dengan UU ITE via lex specialis',
-      'Sesuaikan gaji & tunjangan dengan UU Cipta Kerja & Peraturan Menteri',
-    ],
-  }
-
-  return { conflicts, references, ai_recommendation: aiRecommendation, risk_assessment: riskAssessment }
 }
 
 function loadSampleDraft(type) {
@@ -347,7 +283,7 @@ onMounted(() => {
             </div>
           </template>
 
-          <el-form ref="draftForm" :model="draftForm" :rules="draftRules" label-width="132px" class="draft-form">
+          <el-form ref="draftFormRef" :model="formModel" :rules="draftRules" label-width="132px" class="draft-form">
             <el-form-item label="Tipe Analisis" prop="analysisType">
               <el-select v-model="analysisType" placeholder="Pilih tipe analisis" style="width: 100%;" clearable>
                 <el-option v-for="type in analysisTypes" :key="type.value" :label="type.label" :value="type.value">
@@ -445,18 +381,13 @@ onMounted(() => {
             </ol>
           </div>
 
-          <div v-else-if="analyzing" class="analysis-progress">
-            <div class="progress-step" v-for="(step, index) in progressSteps" :key="step.name" :class="{ active: index === currentProgressIndex, completed: index < currentProgressIndex }">
-              <div class="step-icon">
-                <el-icon v-if="index < currentProgressIndex"><CircleCheck /></el-icon>
-                <el-icon v-else-if="index === currentProgressIndex"><Refresh class="is-loading" /></el-icon>
-                <el-icon v-else><QuestionFilled /></el-icon>
-              </div>
-              <div class="step-info">
-                <div class="step-name">{{ step.name }}</div>
-                <div class="step-desc">{{ step.desc }}</div>
-              </div>
-            </div>
+          <div v-else-if="analyzing" class="analysis-progress" role="status" aria-live="polite">
+            <div class="loading-spinner"></div>
+            <h3 class="guide-title">Analisis sedang diproses</h3>
+            <p class="guide-desc">
+              Permintaan sudah dikirim ke backend Lex-DSS. Hasil akan ditampilkan setelah seluruh proses selesai.
+            </p>
+            <div class="progress-indicator" aria-hidden="true"></div>
           </div>
 
           <div v-else-if="activeStep === 3 && analysisResult" class="analysis-summary">
@@ -506,38 +437,6 @@ onMounted(() => {
     </el-card>
   </div>
 </template>
-
-<script>
-export default {
-  data() {
-    return {
-      draftForm: {},
-      progressSteps: [
-        { name: 'Preprocessing', desc: 'Membersihkan & memparsing teks draf' },
-        { name: 'Lex Integrity Check', desc: 'Mendeteksi kontradiksi hierarki & norma' },
-        { name: 'Vector Search', desc: 'Mencari pasal hukum relevan (RAG)' },
-        { name: 'AI Reasoning', desc: 'LLM mensintesis legal opinion' },
-        { name: 'Risk Assessment', desc: 'Menghitung risk score & rekomendasi' },
-      ],
-      currentProgressIndex: 0,
-    }
-  },
-  mounted() {
-    this.simulateProgress()
-  },
-  methods: {
-    simulateProgress() {
-      const interval = setInterval(() => {
-        if (this.currentProgressIndex < this.progressSteps.length - 1) {
-          this.currentProgressIndex++
-        } else {
-          clearInterval(interval)
-        }
-      }, 400)
-    },
-  },
-}
-</script>
 
 <style scoped>
 .analysis-steps {
@@ -659,78 +558,31 @@ export default {
   padding: 20px 0;
 }
 
-.progress-step {
-  display: flex;
-  align-items: flex-start;
-  gap: 16px;
-  padding: 16px 0;
-  position: relative;
+.progress-indicator {
+  height: 5px;
+  margin-top: 20px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e8eef3;
 }
 
-.progress-step:not(:last-child)::before {
+.progress-indicator::after {
   content: '';
-  position: absolute;
-  left: 11px;
-  top: 40px;
-  bottom: 0;
-  width: 2px;
-  background: #e5e7eb;
+  display: block;
+  width: 38%;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--primary-color, #0ea5e9);
+  animation: analysis-sweep 1.2s ease-in-out infinite alternate;
 }
 
-.progress-step.completed::before {
-  background: #16a34a;
+@keyframes analysis-sweep {
+  from { transform: translateX(-5%); }
+  to { transform: translateX(170%); }
 }
 
-.progress-step.active::before {
-  background: #0ea5e9;
-}
-
-.step-icon {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #f3f4f6;
-  color: #9ca3af;
-  flex-shrink: 0;
-  z-index: 1;
-}
-
-.progress-step.completed .step-icon {
-  background: #16a34a;
-  color: white;
-}
-
-.progress-step.active .step-icon {
-  background: #0ea5e9;
-  color: white;
-}
-
-.step-info {
-  flex: 1;
-}
-
-.step-name {
-  font-weight: 500;
-  color: #1f2937;
-}
-
-.step-desc {
-  font-size: 12px;
-  color: #9ca3af;
-  margin-top: 2px;
-}
-
-.progress-step.completed .step-name,
-.progress-step.completed .step-desc {
-  color: #16a34a;
-}
-
-.progress-step.active .step-name,
-.progress-step.active .step-desc {
-  color: #0ea5e9;
+@media (prefers-reduced-motion: reduce) {
+  .progress-indicator::after { animation-duration: 3s; }
 }
 
 .analysis-summary {

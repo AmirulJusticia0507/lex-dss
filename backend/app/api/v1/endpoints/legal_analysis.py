@@ -13,7 +13,8 @@ from app.core.security import get_current_active_user
 from app.models.legal import LegalArticle, LegalHierarchy, NormConflict
 from app.models.audit import DecisionAuditLog, JudicialDeviationReport
 from app.models.user import User
-from app.engine.lex_integrity import lex_integrity_engine, LegalNorm
+from app.engine.lex_integrity import lex_integrity_engine, LegalNorm, ConflictType, SEVERITY_ORDER
+from app.services.lex_integrity_service import LexIntegrityService
 from app.engine.rag import (
     search_similar_articles, 
     hybrid_search, 
@@ -99,11 +100,19 @@ async def analyze_conflict(
 ):
     analysis_id = f"ANL-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}"
     
-    legal_articles = await _extract_articles_from_draft(db, request.draft_text, request.domain)
+    domain = request.domain
+    if not domain and request.analysis_type == "criminal":
+        domain = "PIDANA"
+    elif not domain and request.analysis_type == "civil":
+        domain = "PERDATA"
+    elif not domain and request.analysis_type == "hierarchy":
+        domain = "HTN"
+
+    legal_articles = await _extract_articles_from_draft(db, request.draft_text, domain)
+
+    conflicts = await _detect_conflicts(db, request.draft_text, legal_articles, request.analysis_type, domain)
     
-    conflicts = await _detect_conflicts(db, legal_articles, request.analysis_type)
-    
-    references = await _find_relevant_references(db, request.draft_text, request.domain, legal_articles)
+    references = await _find_relevant_references(db, request.draft_text, domain, legal_articles)
     
     ai_recommendation = await _generate_ai_recommendation(
         request.draft_text, conflicts, references, request.analysis_type
@@ -139,66 +148,61 @@ async def _extract_articles_from_draft(
 
 async def _detect_conflicts(
     db: AsyncSession,
+    draft_text: str,
     legal_articles: List[LegalArticle],
     analysis_type: str,
+    domain: Optional[str] = None,
 ) -> List[ConflictItem]:
-    conflicts = []
-    
-    for i, article in enumerate(legal_articles):
-        for other_article in legal_articles[i+1:]:
-            if article.hierarchy_id and other_article.hierarchy_id:
-                article_norm = LegalNorm(
-                    id=str(article.id),
-                    document_title=article.document_title,
-                    article_number=article.article_number,
-                    content=article.content,
-                    domain=article.domain,
-                    hierarchy_rank=article.hierarchy.rank if article.hierarchy else None,
-                    hierarchy_type=article.hierarchy.type_name if article.hierarchy else None,
-                )
-                other_norm = LegalNorm(
-                    id=str(other_article.id),
-                    document_title=other_article.document_title,
-                    article_number=other_article.article_number,
-                    content=other_article.content,
-                    domain=other_article.domain,
-                    hierarchy_rank=other_article.hierarchy.rank if other_article.hierarchy else None,
-                    hierarchy_type=other_article.hierarchy.type_name if other_article.hierarchy else None,
-                )
-                
-                for check_method in [
-                    lex_integrity_engine.check_lex_superior,
-                    lex_integrity_engine.check_lex_specialis,
-                    lex_integrity_engine.check_lex_posterior,
-                    lex_integrity_engine.check_direct_contradiction,
-                ]:
-                    conflict = check_method(article_norm, other_norm)
-                    if conflict:
-                        conflicts.append(ConflictItem(
-                            id=f"CONF-{len(conflicts)+1:03d}",
-                            conflict_type=conflict.conflict_type.value,
-                            severity=conflict.severity.value,
-                            description=conflict.description,
-                            source_article={
-                                "id": str(conflict.source_norm.id),
-                                "document_title": conflict.source_norm.document_title,
-                                "article_number": conflict.source_norm.article_number,
-                                "content": conflict.source_norm.content[:300],
-                                "domain": conflict.source_norm.domain,
-                                "hierarchy_rank": conflict.source_norm.hierarchy_rank,
-                            },
-                            target_article={
-                                "id": str(conflict.target_norm.id),
-                                "document_title": conflict.target_norm.document_title,
-                                "article_number": conflict.target_norm.article_number,
-                                "content": conflict.target_norm.content[:300],
-                                "domain": conflict.target_norm.domain,
-                                "hierarchy_rank": conflict.target_norm.hierarchy_rank,
-                            },
-                            created_at=datetime.utcnow().isoformat(),
-                        ))
-    
-    return conflicts[:10]
+    service = LexIntegrityService(db)
+    hierarchy_map = await service.hierarchy_map()
+    candidate_norms = [service.article_to_norm(article, hierarchy_map) for article in legal_articles]
+    draft_norm = LegalNorm(
+        id=f"draft:{uuid.uuid4()}",
+        document_title="Draf yang Dianalisis",
+        article_number="Draf",
+        content=draft_text[:20000],
+        domain=domain,
+        hierarchy_rank=lex_integrity_engine.get_hierarchy_rank(draft_text[:500]),
+    )
+
+    detected = lex_integrity_engine.analyze_conflicts(draft_norm, candidate_norms)
+    if domain in {"PIDANA", "PERDATA"}:
+        detected = service._apply_domain_rules(draft_norm, candidate_norms, detected, domain)
+
+    type_filters = {
+        "hierarchy": {ConflictType.LEX_SUPERIOR},
+        "contradiction": {ConflictType.DIRECT_CONTRADICTION},
+    }
+    if analysis_type in type_filters:
+        detected = [item for item in detected if item.conflict_type in type_filters[analysis_type]]
+    detected = sorted(
+        detected,
+        key=lambda item: SEVERITY_ORDER[item.severity.value],
+        reverse=True,
+    )[:10]
+
+    def article_payload(norm: LegalNorm) -> Dict[str, Any]:
+        return {
+            "id": str(norm.id),
+            "document_title": norm.document_title,
+            "article_number": norm.article_number,
+            "content": norm.content[:300],
+            "domain": norm.domain,
+            "hierarchy_rank": norm.hierarchy_rank,
+        }
+
+    return [
+        ConflictItem(
+            id=f"CONF-{index:03d}",
+            conflict_type=item.conflict_type.value,
+            severity=item.severity.value,
+            description=item.description,
+            source_article=article_payload(item.source_norm),
+            target_article=article_payload(item.target_norm),
+            created_at=datetime.utcnow().isoformat(),
+        )
+        for index, item in enumerate(detected, start=1)
+    ]
 
 
 async def _find_relevant_references(
@@ -273,7 +277,16 @@ async def _generate_ai_recommendation(
     
     conflict_summary = "; ".join([f"{c.conflict_type} ({c.severity})" for c in conflicts[:3]])
     
-    prompt = f"""Analisis draf hukum berikut untuk mendeteksi kontradiksi norma dan memberikan rekomendasi hukum Indonesia.
+    analysis_scope = {
+        "comprehensive": "analisis menyeluruh hierarki, asas hukum, kontradiksi, dan rekomendasi",
+        "hierarchy": "analisis hierarki peraturan (Lex Superior) saja",
+        "contradiction": "analisis kontradiksi langsung antar norma saja",
+        "criminal": "analisis hukum pidana, asas legalitas, dan tumpang tindih delik/sanksi",
+        "civil": "analisis hukum perdata, syarat sah perjanjian, dan klausula baku",
+    }.get(analysis_type, "analisis hukum menyeluruh")
+
+    prompt = f"""Analisis draf hukum berikut dengan fokus: {analysis_scope}.
+Gunakan hanya referensi yang tercantum. Jangan mengarang nomor pasal atau sumber hukum; jika referensi tidak tersedia, nyatakan keterbatasan basis data.
 
 DRAFT TEKS:
 {draft_text[:2000]}
@@ -284,7 +297,7 @@ KONTRADIKSI TERDETEKSI ({len(conflicts)} total):
 REFERENSI HUKUM RELEVAN:
 {chr(10).join([f"- {r.document_title} {r.article_number}: {r.content[:200]}..." for r in references[:5]])}
 
-TUGAS: Berikan analisis hukum komprehensif dalam Bahasa Indonesia mencakup:
+TUGAS: Berikan analisis dalam Bahasa Indonesia sesuai fokus analisis mencakup:
 1. Ringkasan eksekutif (2-3 kalimat)
 2. Ratio decidendi (penalaran hukum bertahap)
 3. Dasar hukum (pasal-pasal spesifik)
@@ -344,6 +357,11 @@ Kembalikan HANYA JSON valid dengan struktur:
             "Koordinasi dengan Kemenkumham untuk harmonisasi",
             "Sesuaikan dengan hierarki perundang-undangan (Pasal 7 UU No. 12/2011)",
         ]
+
+        if not references:
+            ratio_parts.append(
+                "Basis data tidak menyediakan referensi hukum yang relevan; kesimpulan ini bersifat awal dan perlu diverifikasi."
+            )
         
         for conflict in conflicts[:2]:
             if conflict.conflict_type == "LEX_SUPERIOR":
@@ -364,7 +382,7 @@ Kembalikan HANYA JSON valid dengan struktur:
         return AIRecommendationResponse(
             summary=summary,
             risk_level=risk_level,
-            confidence_score=0.8,
+            confidence_score=0.35 if not references else 0.8,
             legal_basis=legal_basis,
             ratio_decidendi="\n\n".join(ratio_parts),
             recommendations=recommendations,
@@ -415,17 +433,34 @@ def _generate_risk_assessment(
         factor_id += 1
     
     type_specific = {
-        "criminal": ("Pelanggaran Asas Legalitas", "Pidana diatur tanpa dasar undang-undang atau tumpang tindih sanksi (ne bis in idem)"),
-        "civil": ("Klausula Tidak Sah Perjanjian", "Waiver hak, force majeure tidak adil, atau denda tanpa batas maksimum"),
-        "hierarchy": ("Ketidaksesuaian Hierarki", "Peraturan level rendah mengatur kewenangan level tinggi"),
+        "criminal": (
+            "Pelanggaran Asas Legalitas",
+            "Pidana diatur tanpa dasar undang-undang atau tumpang tindih sanksi (ne bis in idem)",
+            {"ANATOMIE_DELICT_OVERLAP", "LEX_SUPERIOR"},
+        ),
+        "civil": (
+            "Klausula Tidak Sah Perjanjian",
+            "Waiver hak, force majeure tidak adil, atau denda tanpa batas maksimum",
+            {"KLAUSULA_BAKU_TIDAK_SAH", "SYARAT_PERJANJIAN_TIDAK_TERPENUHI"},
+        ),
+        "hierarchy": (
+            "Ketidaksesuaian Hierarki",
+            "Peraturan level rendah mengatur kewenangan level tinggi",
+            {"LEX_SUPERIOR"},
+        ),
     }
-    
+
     if analysis_type in type_specific:
-        title, desc = type_specific[analysis_type]
+        title, desc, relevant_types = type_specific[analysis_type]
+        relevant_count = sum(1 for conflict in conflicts if conflict.conflict_type in relevant_types)
+    else:
+        relevant_count = 0
+
+    if analysis_type in type_specific and relevant_count:
         factors.append(RiskFactor(
             id=factor_id,
             title=title,
-            description=desc,
+            description=f"{relevant_count} temuan: {desc}",
             severity="HIGH" if analysis_type in ["criminal", "hierarchy"] else "MEDIUM",
         ))
         factor_id += 1
