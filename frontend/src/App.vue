@@ -161,7 +161,7 @@ function getNotificationTypeClass(type) {
               <el-dropdown-menu>
                 <div class="notification-header">
                   <span>Notifikasi</span>
-                  <el-button v-if="unreadCount > 0" size="small" type="text" @click="markAllRead">Tandai semua dibaca</el-button>
+                  <el-button v-if="unreadCount > 0" size="small" link @click="markAllRead">Tandai semua dibaca</el-button>
                 </div>
                 <div class="notification-list">
                   <el-dropdown-item
@@ -180,7 +180,7 @@ function getNotificationTypeClass(type) {
                     </div>
                   </el-dropdown-item>
                   <el-dropdown-item divided class="notif-footer">
-                    <el-button size="small" type="text" block>Lihat semua notifikasi</el-button>
+                    <el-button size="small" link>Lihat semua notifikasi</el-button>
                   </el-dropdown-item>
                 </div>
               </el-dropdown-menu>

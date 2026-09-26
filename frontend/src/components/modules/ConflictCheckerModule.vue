@@ -309,24 +309,30 @@ onMounted(() => {
               </el-select>
             </el-form-item>
 
-            <el-form-item label="Teks Draf" prop="draftText">
-              <el-input
-                v-model="draftText"
-                type="textarea"
-                :rows="15"
-                placeholder="Masukkan teks draf peraturan, perjanjian, atau dokumen hukum di sini..."
-                show-word-limit
-                maxlength="50000"
-                style="font-family: 'Merriweather', serif; font-size: 13px;"
-              />
-              <template #append>
-                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                  <el-button size="small" @click="loadSampleDraft('ht')" type="text"><el-icon><Document /></el-icon> Sample Perda</el-button>
-                  <el-button size="small" @click="loadSampleDraft('criminal')" type="text"><el-icon><Warning /></el-icon> Sample Pidana</el-button>
-                  <el-button size="small" @click="loadSampleDraft('civil')" type="text"><el-icon><Rank /></el-icon> Sample Perdata</el-button>
-                  <el-button size="small" @click="draftText = ''" type="text"><el-icon><Delete /></el-icon> Bersihkan</el-button>
+            <el-form-item label="Teks Draf" prop="draftText" class="draft-text-item">
+              <div class="draft-editor">
+                <el-input
+                  v-model="draftText"
+                  class="draft-textarea"
+                  type="textarea"
+                  :rows="13"
+                  placeholder="Tempelkan teks draf peraturan, perjanjian, atau dokumen hukum di sini..."
+                  show-word-limit
+                  maxlength="50000"
+                />
+                <div class="draft-toolbar">
+                  <div class="draft-samples" aria-label="Muat contoh draf">
+                    <span class="draft-toolbar-label">Isi contoh:</span>
+                    <el-button size="small" link @click="loadSampleDraft('ht')"><el-icon><Document /></el-icon> Perda</el-button>
+                    <el-button size="small" link @click="loadSampleDraft('criminal')"><el-icon><Warning /></el-icon> Pidana</el-button>
+                    <el-button size="small" link @click="loadSampleDraft('civil')"><el-icon><Rank /></el-icon> Perdata</el-button>
+                  </div>
+                  <el-button size="small" link type="danger" :disabled="!draftText" @click="draftText = ''">
+                    <el-icon><Delete /></el-icon> Bersihkan
+                  </el-button>
                 </div>
-              </template>
+                <p class="draft-helper">Minimal 50 karakter. Teks draf tetap bisa diedit setelah memilih contoh.</p>
+              </div>
             </el-form-item>
 
             <el-form-item>
@@ -344,10 +350,13 @@ onMounted(() => {
             <span class="card-title">Contoh Cepat</span>
           </template>
           <div class="quick-list">
+            <p class="quick-hint">Pilih fokus analisis. Pilihan ini akan ikut terkirim saat draf dianalisis.</p>
             <el-radio-group v-model="analysisType" class="quick-group">
               <el-radio v-for="type in analysisTypes" :key="type.value" :label="type.value" class="quick-option">
-                <div class="quick-title">{{ type.label }}</div>
-                <div class="quick-desc">{{ type.description }}</div>
+                <span class="quick-copy">
+                  <span class="quick-title">{{ type.label }}</span>
+                  <span class="quick-desc">{{ type.description }}</span>
+                </span>
               </el-radio>
             </el-radio-group>
           </div>
@@ -511,47 +520,155 @@ onMounted(() => {
 }
 
 .quick-list {
-  padding: 16px;
+  padding: 4px 2px 2px;
+}
+
+.quick-hint {
+  margin: 0 0 14px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.5;
 }
 
 .quick-group {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
   width: 100%;
 }
 
 .quick-option {
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-md);
-  padding: 12px 14px;
-  margin: 0 !important;
-  height: auto;
+  box-sizing: border-box;
+  display: flex;
   align-items: flex-start;
-  transition: all var(--transition-normal);
+  width: 100%;
+  min-height: 78px;
+  height: auto;
+  margin: 0 !important;
+  padding: 13px 14px;
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  background: #fff;
+  white-space: normal;
+  transition: border-color var(--transition-normal), background-color var(--transition-normal), box-shadow var(--transition-normal), transform var(--transition-normal);
 }
 
-.quick-option:hover {
+.quick-option:nth-child(1) {
+  grid-column: 1 / -1;
+}
+
+.quick-option:hover,
+.quick-option:focus-within {
   border-color: var(--primary-color);
   background: var(--bg-secondary);
+  transform: translateY(-1px);
+}
+
+.quick-option.is-checked {
+  border-color: var(--primary-color);
+  background: var(--stat-primary-soft, #eff6ff);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary-color) 12%, transparent);
+}
+
+.quick-option :deep(.el-radio__input) {
+  margin-top: 2px;
+}
+
+.quick-option :deep(.el-radio__label) {
+  min-width: 0;
+  padding-left: 10px;
+  white-space: normal;
+}
+
+.quick-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
 }
 
 .quick-title {
   font-size: 13px;
   font-weight: 600;
   color: var(--text-primary);
-  line-height: 1.4;
+  line-height: 1.35;
 }
 
 .quick-desc {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text-secondary);
-  line-height: 1.5;
-  margin-top: 2px;
+  line-height: 1.45;
+}
+
+@media (max-width: 640px) {
+  .quick-group {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .quick-option:nth-child(1) {
+    grid-column: auto;
+  }
 }
 
 .draft-form .el-form-item {
   margin-bottom: 20px;
+}
+
+.draft-text-item :deep(.el-form-item__content) {
+  display: block;
+  min-width: 0;
+}
+
+.draft-editor {
+  width: 100%;
+  min-width: 0;
+}
+
+.draft-textarea :deep(.el-textarea__inner) {
+  min-height: 280px !important;
+  padding: 14px 15px;
+  border-color: var(--border-light);
+  border-radius: 10px;
+  background: #fbfdff;
+  color: var(--text-primary);
+  font-family: 'Merriweather', Georgia, serif;
+  font-size: 13px;
+  line-height: 1.75;
+  resize: vertical;
+  transition: border-color var(--transition-normal), box-shadow var(--transition-normal), background-color var(--transition-normal);
+}
+
+.draft-textarea :deep(.el-textarea__inner:focus) {
+  border-color: var(--primary-color);
+  background: #fff;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color) 12%, transparent);
+}
+
+.draft-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 9px;
+}
+
+.draft-samples {
+  display: flex;
+  align-items: center;
+  gap: 4px 10px;
+  flex-wrap: wrap;
+}
+
+.draft-toolbar-label,
+.draft-helper {
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+
+.draft-helper {
+  margin: 6px 0 0;
+  line-height: 1.5;
 }
 
 .analysis-progress {

@@ -4,6 +4,7 @@
 *.pem
 backend/.env
 frontend/.env
+backend/data/lex-integrity-pilot/
 
 # Python
 __pycache__/

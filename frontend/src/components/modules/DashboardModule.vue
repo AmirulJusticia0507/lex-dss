@@ -318,7 +318,7 @@ onMounted(() => {
           <template #header>
             <div class="card-header">
               <span class="card-title">Kontradiksi Terbaru</span>
-              <el-button size="small" type="text" @click="$router.push('/conflict-checker')">Lihat Semua</el-button>
+              <el-button size="small" link @click="$router.push('/conflict-checker')">Lihat Semua</el-button>
             </div>
           </template>
           <el-table
