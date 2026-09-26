@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 from typing import Optional, List, Dict, Any
 import uuid
 from datetime import datetime
+import logging
 
 from app.core.database import get_db
 from app.core.security import get_current_active_user
@@ -13,8 +14,15 @@ from app.models.legal import LegalArticle, LegalHierarchy, NormConflict
 from app.models.audit import DecisionAuditLog, JudicialDeviationReport
 from app.models.user import User
 from app.engine.lex_integrity import lex_integrity_engine, LegalNorm
-from app.engine.rag import search_similar_articles, hybrid_search
+from app.engine.rag import (
+    search_similar_articles, 
+    hybrid_search, 
+    generate_llm_response,
+    keyword_search,
+)
 from app.engine.deviation import calculate_deviation_score, DeviationScoreRequest
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -250,13 +258,10 @@ async def _generate_ai_recommendation(
     
     if high_conflicts:
         risk_level = "HIGH"
-        confidence = 0.9
     elif medium_conflicts:
         risk_level = "MEDIUM"
-        confidence = 0.75
     else:
         risk_level = "LOW"
-        confidence = 0.6
     
     legal_basis = []
     for i, ref in enumerate(references[:5]):
@@ -268,49 +273,102 @@ async def _generate_ai_recommendation(
     
     conflict_summary = "; ".join([f"{c.conflict_type} ({c.severity})" for c in conflicts[:3]])
     
-    ratio_parts = [
-        f"Berdasarkan analisis Lex Integrity Engine terdeteksi {len(conflicts)} kontradiksi norma: {conflict_summary}.",
-    ]
+    prompt = f"""Analisis draf hukum berikut untuk mendeteksi kontradiksi norma dan memberikan rekomendasi hukum Indonesia.
+
+DRAFT TEKS:
+{draft_text[:2000]}
+
+KONTRADIKSI TERDETEKSI ({len(conflicts)} total):
+{chr(10).join([f"- {c.conflict_type} ({c.severity}): {c.description}" for c in conflicts[:5]])}
+
+REFERENSI HUKUM RELEVAN:
+{chr(10).join([f"- {r.document_title} {r.article_number}: {r.content[:200]}..." for r in references[:5]])}
+
+TUGAS: Berikan analisis hukum komprehensif dalam Bahasa Indonesia mencakup:
+1. Ringkasan eksekutif (2-3 kalimat)
+2. Ratio decidendi (penalaran hukum bertahap)
+3. Dasar hukum (pasal-pasal spesifik)
+4. Rekomendasi perbaikan konkret (5-7 poin)
+5. Tingkat risiko (HIGH/MEDIUM/LOW) dan confidence score (0.0-1.0)
+
+Kembalikan HANYA JSON valid dengan struktur:
+{{
+  "summary": "...",
+  "risk_level": "HIGH|MEDIUM|LOW",
+  "confidence_score": 0.0-1.0,
+  "legal_basis": [{{"id": 1, "article_reference": "...", "explanation": "..."}}],
+  "ratio_decidendi": "...",
+  "recommendations": ["...", "..."]
+}}"""
     
-    for conflict in conflicts[:3]:
-        ratio_parts.append(
-            f"{conflict.conflict_type}: {conflict.description}"
+    llm_response = await generate_llm_response(
+        prompt=prompt,
+        format_json=True,
+        temperature=0.2,
+    )
+    
+    try:
+        import json
+        ai_data = json.loads(llm_response)
+        
+        return AIRecommendationResponse(
+            summary=ai_data.get("summary", "Analisis tidak tersedia"),
+            risk_level=ai_data.get("risk_level", risk_level),
+            confidence_score=ai_data.get("confidence_score", 0.8),
+            legal_basis=[LegalBasisItem(**lb) for lb in ai_data.get("legal_basis", legal_basis)],
+            ratio_decidendi=ai_data.get("ratio_decidendi", "Ratio decidendi tidak tersedia"),
+            recommendations=ai_data.get("recommendations", [
+                "Lakukan review menyeluruh terhadap pasal yang bermasalah",
+                "Koordinasi dengan Kemenkumham untuk harmonisasi",
+                "Sesuaikan dengan hierarki perundang-undangan (Pasal 7 UU No. 12/2011)",
+            ]),
         )
-    
-    ratio_parts.append(
-        "Rekomendasi: Perbaiki draf sesuai hierarki perundang-undangan dan asas-asas hukum yang berlaku."
-    )
-    
-    recommendations = [
-        "Lakukan review menyeluruh terhadap pasal yang bermasalah",
-        "Koordinasi dengan Kemenkumham untuk harmonisasi",
-        "Sesuaikan dengan hierarki perundang-undangan (Pasal 7 UU No. 12/2011)",
-    ]
-    
-    for conflict in conflicts[:2]:
-        if conflict.conflict_type == "LEX_SUPERIOR":
-            recommendations.append(
-                f"Hapus/revisi {conflict.target_article['article_number']} {conflict.target_article['document_title']} "
-                f"yang bertentangan dengan {conflict.source_article['article_number']} {conflict.source_article['document_title']}"
+    except Exception as e:
+        logger.warning(f"LLM response parsing failed: {e}, using fallback")
+        
+        ratio_parts = [
+            f"Berdasarkan analisis Lex Integrity Engine terdeteksi {len(conflicts)} kontradiksi norma: {conflict_summary}.",
+        ]
+        
+        for conflict in conflicts[:3]:
+            ratio_parts.append(
+                f"{conflict.conflict_type}: {conflict.description}"
             )
-        elif conflict.conflict_type == "DIRECT_CONTRADICTION":
-            recommendations.append(
-                f"Harmonisasi {conflict.target_article['article_number']} dengan {conflict.source_article['article_number']}"
-            )
-    
-    summary = f"Draf mengandung {len(high_conflicts)} kontradiksi HIGH, {len(medium_conflicts)} MEDIUM. "
-    if high_conflicts:
-        summary += "Perlu revisi substansial sebelum disahkan. "
-    summary += "Detail lihat ratio decidendi."
-    
-    return AIRecommendationResponse(
-        summary=summary,
-        risk_level=risk_level,
-        confidence_score=confidence,
-        legal_basis=legal_basis,
-        ratio_decidendi="\n\n".join(ratio_parts),
-        recommendations=recommendations,
-    )
+        
+        ratio_parts.append(
+            "Rekomendasi: Perbaiki draf sesuai hierarki perundang-undangan dan asas-asas hukum yang berlaku."
+        )
+        
+        recommendations = [
+            "Lakukan review menyeluruh terhadap pasal yang bermasalah",
+            "Koordinasi dengan Kemenkumham untuk harmonisasi",
+            "Sesuaikan dengan hierarki perundang-undangan (Pasal 7 UU No. 12/2011)",
+        ]
+        
+        for conflict in conflicts[:2]:
+            if conflict.conflict_type == "LEX_SUPERIOR":
+                recommendations.append(
+                    f"Hapus/revisi {conflict.target_article['article_number']} {conflict.target_article['document_title']} "
+                    f"yang bertentangan dengan {conflict.source_article['article_number']} {conflict.source_article['document_title']}"
+                )
+            elif conflict.conflict_type == "DIRECT_CONTRADICTION":
+                recommendations.append(
+                    f"Harmonisasi {conflict.target_article['article_number']} dengan {conflict.source_article['article_number']}"
+                )
+        
+        summary = f"Draf mengandung {len(high_conflicts)} kontradiksi HIGH, {len(medium_conflicts)} MEDIUM. "
+        if high_conflicts:
+            summary += "Perlu revisi substansial sebelum disahkan. "
+        summary += "Detail lihat ratio decidendi."
+        
+        return AIRecommendationResponse(
+            summary=summary,
+            risk_level=risk_level,
+            confidence_score=0.8,
+            legal_basis=legal_basis,
+            ratio_decidendi="\n\n".join(ratio_parts),
+            recommendations=recommendations,
+        )
 
 
 def _generate_risk_assessment(

@@ -3,7 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMenu, ElMenuItem, ElSubMenu, ElIcon, ElAvatar, ElDropdown, ElDropdownMenu, ElDropdownItem, ElTooltip } from 'element-plus'
 import {
-  Monitor, Warning, DataAnalysis, Collection, Setting, User, Lock, SwitchButton, Moon, Sunny, Bell, Message, LogOut, FullScreen, Fold, Expand, Dashboard, Document, Cpu, Scale, TrendCharts
+  Monitor, Warning, DataAnalysis, Collection, Setting, User, Lock, SwitchButton, Moon, Sunny, Bell, Message, ArrowRight, FullScreen, Fold, Expand, Dashboard, Document, Cpu, Rank, TrendCharts
 } from '@element-plus/icons-vue'
 import { useUIStore } from '@/stores'
 import { useAuthStore } from '@/stores'
@@ -74,7 +74,7 @@ function getNotificationTypeClass(type) {
     <el-aside :width="isCollapsed ? '64px' : '280px'" class="sidebar">
       <div class="logo-container">
         <div class="logo-icon">
-          <el-icon><Scale /></el-icon>
+          <el-icon><Rank /></el-icon>
         </div>
         <span v-show="!isCollapsed" class="logo-text">Lex-DSS</span>
       </div>
@@ -201,7 +201,7 @@ function getNotificationTypeClass(type) {
                   <span>Ganti Organisasi</span>
                 </el-dropdown-item>
                 <el-dropdown-item @click.native="handleLogout">
-                  <el-icon><LogOut /></el-icon>
+                  <el-icon><ArrowRight /></el-icon>
                   <span>Keluar</span>
                 </el-dropdown-item>
               </el-dropdown-menu>

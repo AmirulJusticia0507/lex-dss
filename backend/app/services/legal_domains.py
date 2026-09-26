@@ -5,6 +5,7 @@ import uuid
 
 from app.models.legal import LegalArticle, LegalHierarchy
 from app.engine.lex_integrity import (
+    LEGAL_BASIS,
     LexIntegrityEngine,
     LegalNorm,
     ConflictType,
@@ -136,6 +137,53 @@ class CriminalLawService:
         
         return len(intersection) / len(union)
 
+    def detect_delict_overlap(
+        self,
+        norm: LegalNorm,
+        candidate_norms: List[LegalNorm],
+        overlap_threshold: float = 0.35,
+    ) -> List[ConflictResult]:
+        """Deteksi tumpang tindih ruang lingkup pidana (asas legalitas)."""
+        penalty_markers = ("pidana", "denda", "penjara", "kurungan", "meninggal", "pidanapersa")
+        content = norm.content.lower()
+        if not any(marker in content for marker in penalty_markers):
+            return []
+
+        results: List[ConflictResult] = []
+        for candidate in candidate_norms:
+            candidate_content = candidate.content.lower()
+            if not any(marker in candidate_content for marker in penalty_markers):
+                continue
+
+            overlap = lex_integrity_engine.topic_overlap(norm.content, candidate.content)
+            if overlap < overlap_threshold:
+                continue
+
+            severity = Severity.HIGH if overlap >= 0.6 else Severity.MEDIUM
+            results.append(
+                ConflictResult(
+                    source_norm=norm,
+                    target_norm=candidate,
+                    conflict_type=ConflictType.ANATOMIE_DELICT_OVERLAP,
+                    severity=severity,
+                    description=(
+                        f"Potensi tumpang tindih ruang lingkup pidana antara "
+                        f"{norm.document_title} Pasal {norm.article_number} dan "
+                        f"{candidate.document_title} Pasal {candidate.article_number} "
+                        f"(similarity {round(overlap, 2)})"
+                    ),
+                    legal_basis=list(LEGAL_BASIS[ConflictType.ANATOMIE_DELICT_OVERLAP.value]),
+                    recommended_action=(
+                        "Perjelas batas cakupan ketentuan dan pastikan hanya satu pasal yang "
+                        "mengatur tindakan pidana yang sama agar asas legalitas terpenuhi."
+                    ),
+                    confidence=min(0.9, 0.5 + overlap),
+                    evidence=[f"topic_overlap={round(overlap, 2)}"],
+                    meta_data={"topic_overlap": round(overlap, 2)},
+                )
+            )
+        return results
+
 
 class CivilLawService:
     def __init__(self, db: AsyncSession):
@@ -222,3 +270,118 @@ class CivilLawService:
                     })
         
         return issues
+
+    STATUTE_KUH_PERDATA = "KUHPerdata"
+
+    def _statute_norm(self, article_number: str, content: str) -> LegalNorm:
+        """Norma acuan (bukan baris legal_articles yang sudah ada), ditandai prefix `statute:`."""
+        return LegalNorm(
+            id=f"statute:{self.STATUTE_KUH_PERDATA}:{article_number}",
+            document_title=self.STATUTE_KUH_PERDATA,
+            article_number=article_number,
+            content=content,
+            domain="PERDATA",
+        )
+
+    def detect_standard_clause_conflicts(self, norm: LegalNorm) -> List[ConflictResult]:
+        """Klausula baku yang bertentangan dengan ketertiban umum/kesusilaan (Pasal 1337 KUHPerdata)."""
+        content = norm.content.lower()
+        unfair_patterns = {
+            "pelepasan_tanggung_jawab": [
+                "bebas tanggung jawab",
+                "tidak bertanggung jawab",
+                "dibebaskan dari",
+                "exoneration",
+                "liability waiver",
+                "pengecualian kewajiban",
+            ],
+            "pembatalan_sepihak": [
+                "pembatalan sepihak",
+                "unilateral termination",
+                "bebas membatalkan",
+            ],
+            "perubahan_sepihak": [
+                "perubahan sepihak",
+                "unilateral amendment",
+                "berhak mengubah kapan saja",
+            ],
+            "denda_tidak_wajar": [
+                "denda tidak wajar",
+                "excessive penalty",
+            ],
+        }
+
+        results: List[ConflictResult] = []
+        for issue_type, patterns in unfair_patterns.items():
+            matched = [pattern for pattern in patterns if pattern in content]
+            if not matched:
+                continue
+            results.append(
+                ConflictResult(
+                    source_norm=norm,
+                    target_norm=self._statute_norm(
+                        "1337",
+                        "Tidak sah segala perjanjian yang bertentangan dengan kesusilaan dan ketertiban umum.",
+                    ),
+                    conflict_type=ConflictType.KLAUSULA_BAKU_TIDAK_SAH,
+                    severity=Severity.HIGH,
+                    description=(
+                        f"Klausula baku bermasalah terdeteksi ({issue_type}); "
+                        f"pola yang muncul: {', '.join(matched)}"
+                    ),
+                    legal_basis=list(LEGAL_BASIS[ConflictType.KLAUSULA_BAKU_TIDAK_SAH.value]),
+                    recommended_action=(
+                        "Hapus atau redupkan klausula tersebut dan ganti dengan formulasi "
+                        "yang tidak bertentangan dengan ketertiban umum dan kesusilaan."
+                    ),
+                    confidence=0.7,
+                    evidence=[f"pola: {matched}"],
+                    meta_data={"issue_type": issue_type, "patterns": matched},
+                )
+            )
+        return results
+
+    def detect_agreement_validity_conflicts(self, norm: LegalNorm) -> List[ConflictResult]:
+        """Syarat sah perjanjian Pasal 1320 KUHPerdata yang tidak terpenuhi."""
+        content = norm.content.lower()
+        if not any(
+            marker in content
+            for marker in ("perjanjian", "kontrak", "klausul", "agreement", "kontrak kerja")
+        ):
+            return []
+
+        syarat_markers = {
+            "sepakat": ("sepakat", "kesepakatan", "akad", "consent"),
+            "cakap_hukum": ("cakap", "dewasa", "berhak", "kompeten"),
+            "hal_tertentu": ("tertentu", "spesifik", "jelas", "objek"),
+            "halal": ("halal", "ketertiban umum", "kesusilaan", "tidak melanggar"),
+        }
+        missing = [
+            name
+            for name, markers in syarat_markers.items()
+            if not any(marker in content for marker in markers)
+        ]
+        if not missing:
+            return []
+
+        return [
+            ConflictResult(
+                source_norm=norm,
+                target_norm=self._statute_norm(
+                    "1320",
+                    "Perjanjian yang dibuat tidak sah apabila tidak memenuhi syarat kesepakatan, "
+                    "cakap hukum, hal tertentu, dan halal.",
+                ),
+                conflict_type=ConflictType.SYARAT_PERJANJIAN_TIDAK_TERPENUHI,
+                severity=Severity.MEDIUM,
+                description=f"Syarat sah perjanjian tidak terpenuhi: {', '.join(missing)}",
+                legal_basis=list(LEGAL_BASIS[ConflictType.SYARAT_PERJANJIAN_TIDAK_TERPENUHI.value]),
+                recommended_action=(
+                    "Lengkapi syarat sah tersebut dalam redaksi, atau nyatakan bahwa klausula "
+                    "bersifat pelepasan atau pengalihan kewajiban secara sah."
+                ),
+                confidence=0.6,
+                evidence=[f"syarat yang tidak ditemukan: {missing}"],
+                meta_data={"missing_requirements": missing},
+            )
+        ]

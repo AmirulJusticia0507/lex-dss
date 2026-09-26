@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { ElRow, ElCol, ElCard, ElStatistic, ElTable, ElTableColumn, ElTag, ElButton, ElIcon, ElEmpty, ElProgress, ElDivider, ElTooltip } from 'element-plus'
-import { TrendCharts, Warning, CheckCircle, Clock, Document, Scale, DataAnalysis, ArrowUp, ArrowDown, Minus } from '@element-plus/icons-vue'
+import { TrendCharts, Warning, CircleCheck, Clock, Document, Rank, DataAnalysis, ArrowUp, ArrowDown, Minus } from '@element-plus/icons-vue'
 import { useLegalStore } from '@/stores'
 import { useDSSStore } from '@/stores'
 import RiskScoreCard from '@/components/RiskScoreCard.vue'

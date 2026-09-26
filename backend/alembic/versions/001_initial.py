@@ -7,7 +7,7 @@ Create Date: 2026-09-26
 """
 from alembic import op
 import sqlalchemy as sa
-from sqlalchemy.dialects.postgresql import UUID, JSONB, VECTOR
+from sqlalchemy.dialects.postgresql import UUID, JSONB
 import uuid
 
 revision = '001'

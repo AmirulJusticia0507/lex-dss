@@ -13,7 +13,7 @@ from sqlalchemy import (
     JSON,
     Numeric,
 )
-from sqlalchemy.dialects.postgresql import UUID, JSONB, VECTOR
+from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from pgvector.sqlalchemy import Vector
 
@@ -73,16 +73,22 @@ class NormConflict(Base):
     severity: Mapped[str] = mapped_column(String(20), nullable=False)
     description: Mapped[str] = mapped_column(Text, nullable=False)
     meta_data: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True)
+    status: Mapped[str] = mapped_column(String(20), default="OPEN", nullable=False)
+    resolution_note: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    resolved_article_id: Mapped[Optional[uuid.UUID]] = mapped_column(UUID(as_uuid=True), ForeignKey("legal_articles.id", ondelete="SET NULL"), nullable=True)
+    resolved_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     
     source_article: Mapped["LegalArticle"] = relationship("LegalArticle", foreign_keys=[source_article_id], back_populates="source_conflicts")
     target_article: Mapped["LegalArticle"] = relationship("LegalArticle", foreign_keys=[target_article_id], back_populates="target_conflicts")
+    resolved_article: Mapped[Optional["LegalArticle"]] = relationship("LegalArticle", foreign_keys=[resolved_article_id])
     
     __table_args__ = (
         Index("ix_norm_conflicts_source", "source_article_id"),
         Index("ix_norm_conflicts_target", "target_article_id"),
         Index("ix_norm_conflicts_type", "conflict_type"),
         Index("ix_norm_conflicts_severity", "severity"),
+        Index("ix_norm_conflicts_status", "status"),
     )
     
     def __repr__(self):

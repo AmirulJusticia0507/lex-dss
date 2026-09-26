@@ -6,15 +6,18 @@ from pydantic import BaseModel, Field
 from typing import Optional, List, Dict, Any
 import uuid
 from datetime import datetime
+import logging
 
 from app.core.database import get_db
 from app.core.security import get_current_active_user
 from app.models.legal import LegalArticle, LegalHierarchy
 from app.models.audit import DecisionAuditLog, JudicialDeviationReport
 from app.models.user import User
-from app.engine.rag import hybrid_search
+from app.engine.rag import hybrid_search, generate_llm_response
 from app.engine.deviation import calculate_deviation_score, DeviationScoreRequest
 from app.engine.lex_integrity import lex_integrity_engine, LegalNorm
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -148,13 +151,10 @@ async def _generate_full_legal_opinion(
     
     if high_conflicts:
         risk_level = "HIGH"
-        confidence = 0.9
     elif medium_conflicts:
         risk_level = "MEDIUM"
-        confidence = 0.75
     else:
         risk_level = "LOW"
-        confidence = 0.6
     
     references = []
     for i, (article, score) in enumerate(legal_articles[:max_refs]):
@@ -169,126 +169,257 @@ async def _generate_full_legal_opinion(
                 "similarity_score": round(score, 2),
             })
     
-    legal_basis = []
-    for i, ref in enumerate(references[:8]):
-        legal_basis.append({
-            "id": i+1,
-            "article_reference": f"{ref['document_title']} - {ref['article_number']}",
-            "explanation": f"Dasar hukum untuk analisis: {ref['content'][:200]}...",
-        })
+    conflict_summary = "; ".join([f"{c['type']} ({c['severity']})" for c in conflicts[:5]])
     
-    ratio_parts = [
-        f"Berdasarkan analisis Lex Integrity Engine dan RAG pipeline terhadap draf yang disediakan:",
-        "",
-    ]
+    prompt = f"""Analisis draf hukum berikut dan berikan opini hukum menyeluruh sesuai standar hukum Indonesia.
+
+DRAFT TEKS:
+{draft_text[:3000]}
+
+KONTRADIKSI TERDETEKSI ({len(conflicts)} total):
+{chr(10).join([f"- {c['type']} ({c['severity']}): {c['description']}" for c in conflicts[:5]])}
+
+REFERENSI HUKUM RELEVAN ({len(references)} ditemukan):
+{chr(10).join([f"- {r['document_title']} {r['article_number']}: {r['content'][:300]}..." for r in references[:8]])}
+
+JENIS ANALISIS: {analysis_type}
+DOMAIN: {domain or 'UMUM'}
+
+TUGAS: Berikan opini hukum komprehensif dalam Bahasa Indonesia:
+1. Ringkasan eksekutif (3-4 kalimat)
+2. Ratio decidendi (penalaran hukum bertahap, 3-5 paragraf)
+3. Dasar hukum (pasal-pasal spesifik dengan penjelasan)
+4. Rekomendasi perbaikan konkret (7-10 poin, prioritas)
+5. Tingkat risiko (HIGH/MEDIUM/LOW) dan confidence score (0.0-1.0)
+
+Kembalikan HANYA JSON valid:
+{{
+  "summary": "...",
+  "risk_level": "HIGH|MEDIUM|LOW",
+  "confidence_score": 0.0-1.0,
+  "legal_basis": [{{"id": 1, "article_reference": "...", "explanation": "..."}}],
+  "ratio_decidendi": "...",
+  "recommendations": ["...", "..."]
+}}"""
     
-    if conflicts:
-        conflict_summary = "; ".join([f"{c['type']} ({c['severity']})" for c in conflicts[:5]])
-        ratio_parts.append(f"Terdeteksi {len(conflicts)} kontradiksi norma: {conflict_summary}.")
-        ratio_parts.append("")
+    llm_response = await generate_llm_response(
+        prompt=prompt,
+        format_json=True,
+        temperature=0.2,
+    )
     
-    for conflict in conflicts[:3]:
-        ratio_parts.append(f"- {conflict['type']}: {conflict['description']}")
-        ratio_parts.append("")
-    
-    if analysis_type == "criminal":
-        ratio_parts.append("Analisis hukum pidana: Memeriksa asas legalitas (Pasal 1 KUHP), unsur-unsur delik (Anatomie Van Delict), dan tumpang tindih sanksi (ne bis in idem).")
-    elif analysis_type == "civil":
-        ratio_parts.append("Analisis hukum perdata: Memeriksa syarat sah perjanjian (Pasal 1320 KUHPerdata), klausula baku (Pasal 1337 KUHPerdata), dan kepatutan isi perjanjian.")
-    elif analysis_type == "hierarchy":
-        ratio_parts.append("Analisis hierarki: Memeriksa keselarasan dengan Pasal 7 UU No. 12/2011 tentang hierarki perundang-undangan.")
-    else:
-        ratio_parts.append("Analisis komprehensif: Menggabungkan pemeriksaan hierarki, kontradiksi, hukum pidana, dan hukum perdata.")
-    
-    ratio_parts.append("")
-    ratio_parts.append("Kesimpulan: " + (
-        "Draf memerlukan revisi substansial sebelum disahkan." if high_conflicts else
-        "Draf memerlukan perbaikan pada beberapa pasal." if medium_conflicts else
-        "Draf secara umum selaras dengan kerangka hukum yang berlaku."
-    ))
-    
-    recommendations = []
-    if include_recs:
-        recommendations = [
-            "Lakukan review menyeluruh terhadap pasal yang bermasalah",
-            "Koordinasi dengan Kemenkumham untuk harmonisasi",
-            "Sesuaikan dengan hierarki perundang-undangan (Pasal 7 UU No. 12/2011)",
+    try:
+        import json
+        ai_data = json.loads(llm_response)
+        
+        legal_basis = ai_data.get("legal_basis", [])
+        if include_citations and legal_basis:
+            formatted_legal_basis = [
+                {"id": lb.get("id", i+1), "article_reference": lb.get("article_reference", ""), "explanation": lb.get("explanation", "")}
+                for i, lb in enumerate(legal_basis[:10])
+            ]
+        else:
+            formatted_legal_basis = []
+        
+        risk_assessment = None
+        if include_risk:
+            base_score = min(len(high_conflicts) * 25 + len(medium_conflicts) * 15 + len(conflicts) * 5, 95)
+            if base_score == 0:
+                base_score = 10
+            
+            if base_score >= 75:
+                level = "TINGGI"
+            elif base_score >= 50:
+                level = "SEDANG"
+            elif base_score >= 25:
+                level = "RENDAH"
+            else:
+                level = "SANGAT RENDAH"
+            
+            factors = []
+            if high_conflicts:
+                factors.append({
+                    "id": 1,
+                    "title": "Pelanggaran Hierarki Perundangan",
+                    "description": f"{len(high_conflicts)} kontradiksi HIGH: norma level rendah mengatur hal yang dilarang level tinggi",
+                    "severity": "HIGH",
+                })
+            if medium_conflicts:
+                factors.append({
+                    "id": 2,
+                    "title": "Tumpang Tindih / Ketidaksesuaian Norma",
+                    "description": f"{len(medium_conflicts)} kontradiksi MEDIUM",
+                    "severity": "MEDIUM",
+                })
+            if analysis_type == "criminal":
+                factors.append({
+                    "id": len(factors) + 1,
+                    "title": "Asas Legalitas & Ne Bis In Idem",
+                    "description": "Perlu verifikasi pidana memiliki dasar UU & tidak ada tumpang tindih sanksi",
+                    "severity": "HIGH",
+                })
+            elif analysis_type == "civil":
+                factors.append({
+                    "id": len(factors) + 1,
+                    "title": "Syarat Sah Perjanjian & Klausula Baku",
+                    "description": "Perlu verifikasi Pasal 1320 & 1337 KUHPerdata",
+                    "severity": "MEDIUM",
+                })
+            
+            factors.append({
+                "id": len(factors) + 1,
+                "title": "Ketidaksesuaian Prosedur Pembentukan",
+                "description": "Verifikasi mengikuti UU No. 12/2011 (akademik, RIA, musyawarah)",
+                "severity": "LOW",
+            })
+            
+            mitigation = [
+                "Identifikasi semua pasal bermasalah",
+                "Revisi pelanggaran hierarki (Lex Superior)",
+                "Harmonisasi norma tumpang tindih (Lex Specialis/Posterior)",
+                "Konsultasi Kemenkumham & stakeholder",
+                "Lakukan RIA jika diperlukan",
+            ]
+            
+            risk_assessment = {
+                "score": base_score,
+                "level": level,
+                "factors": factors,
+                "mitigation": mitigation,
+            }
+        
+        return LegalOpinionResponse(
+            summary=ai_data.get("summary", "Analisis tidak tersedia"),
+            risk_level=risk_level,
+            confidence_score=ai_data.get("confidence_score", 0.8),
+            legal_basis=formatted_legal_basis if include_citations else [],
+            ratio_decidendi=ai_data.get("ratio_decidendi", "Ratio decidendi tidak tersedia"),
+            recommendations=ai_data.get("recommendations", []) if include_recs else [],
+            references=references if include_citations else [],
+            risk_assessment=risk_assessment,
+        )
+    except Exception as e:
+        logger.warning(f"LLM response parsing failed: {e}, using fallback")
+        
+        legal_basis = []
+        for i, ref in enumerate(references[:8]):
+            legal_basis.append({
+                "id": i+1,
+                "article_reference": f"{ref['document_title']} - {ref['article_number']}",
+                "explanation": f"Dasar hukum untuk analisis: {ref['content'][:200]}...",
+            })
+        
+        ratio_parts = [
+            f"Berdasarkan analisis Lex Integrity Engine dan RAG pipeline terhadap draf yang disediakan:",
+            "",
         ]
+        
+        if conflicts:
+            ratio_parts.append(f"Terdeteksi {len(conflicts)} kontradiksi norma: {conflict_summary}.")
+            ratio_parts.append("")
         
         for conflict in conflicts[:3]:
-            if conflict["type"] == "LEX_SUPERIOR":
-                recommendations.append(
-                    f"Revisi norma level rendah yang bertentangan dengan {conflict['source']}"
-                )
-            elif conflict["type"] == "DIRECT_CONTRADICTION":
-                recommendations.append(
-                    f"Harmonisasi {conflict['target']} dengan {conflict['source']}"
-                )
-    
-    summary = f"Analisis {analysis_type} pada draf hukum mengidentifikasi {len(high_conflicts)} kontradiksi HIGH dan {len(medium_conflicts)} MEDIUM. "
-    if high_conflicts:
-        summary += "Rekomendasi: revisi substansial diperlukan. "
-    elif medium_conflicts:
-        summary += "Rekomendasi: perbaikan parsial diperlukan. "
-    else:
-        summary += "Draf relatif selaras dengan kerangka hukum. "
-    
-    risk_assessment = None
-    if include_risk:
-        base_score = min(len(high_conflicts) * 25 + len(medium_conflicts) * 15 + len(conflicts) * 5, 95)
-        if base_score == 0:
-            base_score = 10
+            ratio_parts.append(f"- {conflict['type']}: {conflict['description']}")
+            ratio_parts.append("")
         
-        if base_score >= 75:
-            level = "TINGGI"
-        elif base_score >= 50:
-            level = "SEDANG"
-        elif base_score >= 25:
-            level = "RENDAH"
+        if analysis_type == "criminal":
+            ratio_parts.append("Analisis hukum pidana: Memeriksa asas legalitas (Pasal 1 KUHP), unsur-unsur delik (Anatomie Van Delict), dan tumpang tindih sanksi (ne bis in idem).")
+        elif analysis_type == "civil":
+            ratio_parts.append("Analisis hukum perdata: Memeriksa syarat sah perjanjian (Pasal 1320 KUHPerdata), klausula baku (Pasal 1337 KUHPerdata), dan kepatutan isi perjanjian.")
+        elif analysis_type == "hierarchy":
+            ratio_parts.append("Analisis hierarki: Memeriksa keselarasan dengan Pasal 7 UU No. 12/2011 tentang hierarki perundang-undangan.")
         else:
-            level = "SANGAT RENDAH"
+            ratio_parts.append("Analisis komprehensif: Menggabungkan pemeriksaan hierarki, kontradiksi, hukum pidana, dan hukum perdata.")
         
-        factors = []
+        ratio_parts.append("")
+        ratio_parts.append("Kesimpulan: " + (
+            "Draf memerlukan revisi substansial sebelum disahkan." if high_conflicts else
+            "Draf memerlukan perbaikan pada beberapa pasal." if medium_conflicts else
+            "Draf secara umum selaras dengan kerangka hukum yang berlaku."
+        ))
+        
+        recommendations = []
+        if include_recs:
+            recommendations = [
+                "Lakukan review menyeluruh terhadap pasal yang bermasalah",
+                "Koordinasi dengan Kemenkumham untuk harmonisasi",
+                "Sesuaikan dengan hierarki perundang-undangan (Pasal 7 UU No. 12/2011)",
+            ]
+            
+            for conflict in conflicts[:3]:
+                if conflict["type"] == "LEX_SUPERIOR":
+                    recommendations.append(
+                        f"Revisi norma level rendah yang bertentangan dengan {conflict['source']}"
+                    )
+                elif conflict["type"] == "DIRECT_CONTRADICTION":
+                    recommendations.append(
+                        f"Harmonisasi {conflict['target']} dengan {conflict['source']}"
+                    )
+        
+        summary = f"Analisis {analysis_type} pada draf hukum mengidentifikasi {len(high_conflicts)} kontradiksi HIGH dan {len(medium_conflicts)} MEDIUM. "
         if high_conflicts:
-            factors.append({
-                "id": 1,
-                "title": "Pelanggaran Hierarki Perundangan",
-                "description": f"{len(high_conflicts)} kontradiksi HIGH: norma level rendah mengatur hal yang dilarang level tinggi",
-                "severity": "HIGH",
-            })
-        if medium_conflicts:
-            factors.append({
-                "id": 2,
-                "title": "Tumpang Tindih / Ketidaksesuaian Norma",
-                "description": f"{len(medium_conflicts)} kontradiksi MEDIUM",
-                "severity": "MEDIUM",
-            })
+            summary += "Rekomendasi: revisi substansial diperlukan. "
+        elif medium_conflicts:
+            summary += "Rekomendasi: perbaikan parsial diperlukan. "
+        else:
+            summary += "Draf relatif selaras dengan kerangka hukum. "
         
-        mitigation = [
-            "Identifikasi semua pasal bermasalah",
-            "Revisi pelanggaran hierarki (Lex Superior)",
-            "Harmonisasi norma tumpang tindih (Lex Specialis/Posterior)",
-            "Konsultasi Kemenkumham & stakeholder",
-            "Lakukan RIA jika diperlukan",
-        ]
+        risk_assessment = None
+        if include_risk:
+            base_score = min(len(high_conflicts) * 25 + len(medium_conflicts) * 15 + len(conflicts) * 5, 95)
+            if base_score == 0:
+                base_score = 10
+            
+            if base_score >= 75:
+                level = "TINGGI"
+            elif base_score >= 50:
+                level = "SEDANG"
+            elif base_score >= 25:
+                level = "RENDAH"
+            else:
+                level = "SANGAT RENDAH"
+            
+            factors = []
+            if high_conflicts:
+                factors.append({
+                    "id": 1,
+                    "title": "Pelanggaran Hierarki Perundangan",
+                    "description": f"{len(high_conflicts)} kontradiksi HIGH: norma level rendah mengatur hal yang dilarang level tinggi",
+                    "severity": "HIGH",
+                })
+            if medium_conflicts:
+                factors.append({
+                    "id": 2,
+                    "title": "Tumpang Tindih / Ketidaksesuaian Norma",
+                    "description": f"{len(medium_conflicts)} kontradiksi MEDIUM",
+                    "severity": "MEDIUM",
+                })
+            
+            mitigation = [
+                "Identifikasi semua pasal bermasalah",
+                "Revisi pelanggaran hierarki (Lex Superior)",
+                "Harmonisasi norma tumpang tindih (Lex Specialis/Posterior)",
+                "Konsultasi Kemenkumham & stakeholder",
+                "Lakukan RIA jika diperlukan",
+            ]
+            
+            risk_assessment = {
+                "score": base_score,
+                "level": level,
+                "factors": factors,
+                "mitigation": mitigation,
+            }
         
-        risk_assessment = {
-            "score": base_score,
-            "level": level,
-            "factors": factors,
-            "mitigation": mitigation,
-        }
-    
-    return LegalOpinionResponse(
-        summary=summary,
-        risk_level=risk_level,
-        confidence_score=confidence,
-        legal_basis=legal_basis if include_citations else [],
-        ratio_decidendi="\n".join(ratio_parts),
-        recommendations=recommendations,
-        references=references if include_citations else [],
-        risk_assessment=risk_assessment,
-    )
+        return LegalOpinionResponse(
+            summary=summary,
+            risk_level=risk_level,
+            confidence_score=0.8,
+            legal_basis=legal_basis if include_citations else [],
+            ratio_decidendi="\n".join(ratio_parts),
+            recommendations=recommendations,
+            references=references if include_citations else [],
+            risk_assessment=risk_assessment,
+        )
 
 
 @router.post("/legal-opinion", response_model=LegalOpinionResponse)

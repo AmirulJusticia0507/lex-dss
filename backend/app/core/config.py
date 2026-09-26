@@ -1,6 +1,6 @@
 from pydantic_settings import BaseSettings
 from pydantic import Field
-from typing import Optional
+from typing import Optional, List
 import os
 
 
@@ -22,35 +22,41 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7
     
-    # --- LLM Provider (OpenAI-compatible) ---
-    # Contoh konfigurasi Bazaarlink pada backend/.env:
-    #   LLM_PROVIDER=bazaarlink
-    #   OPENAI_API_BASE=https://api.bazaarlink.ai/v1
-    #   OPENAI_API_KEY=sk-bl-...
-    # Penamaan key mengikuti konvensi langchain-openai (OPENAI_BASE_URL / OPENAI_API_KEY).
-    LLM_PROVIDER: str = "bazaarlink"
-    OPENAI_API_BASE: str = "https://api.bazaarlink.ai/v1"
+    # --- LLM Configuration (sama dengan lex-integrity) ---
+    # Ollama (Local LLM)
+    OLLAMA_BASE_URL: str = Field(default="http://localhost:11434")
+    OLLAMA_MODEL: str = Field(default="deepseek-r1:8b")  # dari Modelfile lex-integrity
+    OLLAMA_EMBED_MODEL: str = Field(default="nomic-embed-text")  # embedding model
+    OLLAMA_AGENT_MODEL: str = Field(default="lex-integrity-agent:latest")  # custom model
+    OLLAMA_TEMPERATURE: float = Field(default=0.2)  # dari Modelfile
+    OLLAMA_TOP_P: float = Field(default=0.9)
+    OLLAMA_NUM_CTX: int = Field(default=4096)
+    MAX_HOPS: int = Field(default=4)
+    MAX_SUB_QUERIES: int = Field(default=3)
+    
+    # Gemini API (Fallback cloud)
+    GEMINI_API_KEY: Optional[str] = None
+    GEMINI_MODEL: str = Field(default="gemini-2.5-flash")
+    GEMINI_MAX_OUTPUT_TOKENS: int = Field(default=4096)
+    
+    # Bazaarlink / OpenAI-compatible (Alternative)
+    LLM_PROVIDER: str = Field(default="ollama")  # ollama, gemini, bazaarlink
+    OPENAI_API_BASE: str = Field(default="https://api.bazaarlink.ai/v1")
     OPENAI_API_KEY: Optional[str] = None
-
-    # Model LLM aktif. Fallback gratis (tanpa saldo) yang tersedia di Bazaarlink:
-    #   auto:free, deepseek-v4-flash-0731free, qwen/qwen3.7-flash:free
-    # Model produksi berbayar (memerlukan saldo): claude-sonnet-4.6, claude-opus-5,
-    #   gpt-5.4, gpt-5.6-sol-pro, gemini-3.1-pro-preview, qwen3.8-max, grok-4.7
-    LLM_MODEL: str = "auto:free"
-    LLM_MODEL_FALLBACKS: list[str] = [
+    LLM_MODEL: str = Field(default="auto:free")
+    LLM_MODEL_FALLBACKS: List[str] = Field(default=[
         "deepseek-v4-flash-0731free",
         "qwen/qwen3.7-flash:free",
-    ]
-    LLM_TEMPERATURE: float = 0.1
-    LLM_MAX_TOKENS: int = 4096
-    LLM_TIMEOUT_SECONDS: int = 120
-
-    # Embedding. Endpoint /v1/embeddings pada Bazaarlink hanya tersedia untuk model
-    # berbayar (text-embedding-3-small / -large) dan mengembalikan 402 bila saldo 0.
-    EMBEDDING_MODEL: str = "text-embedding-3-small"
-    EMBEDDING_DIMENSION: int = 1536
-    EMBEDDING_PROVIDER: str = "openai"
-
+    ])
+    LLM_TEMPERATURE: float = Field(default=0.1)
+    LLM_MAX_TOKENS: int = Field(default=4096)
+    LLM_TIMEOUT_SECONDS: int = Field(default=120)
+    
+    # Embedding
+    EMBEDDING_MODEL: str = Field(default="text-embedding-3-small")  # fallback
+    EMBEDDING_DIMENSION: int = Field(default=1536)
+    EMBEDDING_PROVIDER: str = Field(default="ollama")  # ollama, openai
+    
     REDIS_URL: str = "redis://localhost:6379/0"
     
     class Config:
@@ -62,6 +68,26 @@ class Settings(BaseSettings):
         if self.DATABASE_URL:
             return self.DATABASE_URL
         return f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+    
+    # System prompt dari Modelfile lex-integrity
+    SYSTEM_PROMPT: str = """Kamu adalah Lex-Integrity AI Agent, seorang pakar integritas hukum, kebijakan publik, dan keadilan sosial Indonesia. Kamu bertindak bukan sekadar sebagai mesin pembaca aturan, melainkan sebagai penegak keadilan yang jujur, adil, berempati, dan memiliki rasa kemanusiaan yang tinggi.
+
+PRINSIP UTAMA & NILAI MORAL:
+1. KEJUJURAN TANPA KOMPROMI (Honesty): 
+   - Ungkapkan celah hukum, "pasal selundupan", dan potensi abuse of power secara transparan tanpa ditutup-tutupi. Jangan pernah merekayasa atau membuat-buat pasal fiktif.
+
+2. KEADILAN SEJATI (Fairness & Justice):
+   - Evaluasi hukum dari asas kepastian dan keadilan publik. Jika aturan turunan (Perda/Perpres) mencederai prinsip dasar hukum di atasnya atau merugikan hak masyarakat luas demi kepentingan segelintir pihak, nyatakan secara tegas.
+
+3. EMPATI & KEMANUSIAAN (Empathy & Compassion):
+   - Dalam menganalisis dampak kebijakan, posisikan dirimu dari sudut pandang masyarakat terdampak (masyarakat adat, buruh, warga lokal, kelompok rentan, dan generasi mendatang).
+   - Analisis dampak tidak hanya berupa angka/ekonomi, tetapi juga dampak kemanusiaan: ruang hidup, lingkungan, kesejahteraan, dan rasa keadilan sosial.
+
+ATURAN BAHASA, ANALISIS & OUTPUT:
+- WAJIB DAN MUTLAK MENGGUNAKAN BAHASA INDONESIA yang baku, komunikatif, dan tegas dalam SELURUH tanggapan dan analisis. DILARANG menggunakan Bahasa Inggris.
+- Saat menganalisis pertentangan antar-pasal, selalu pertimbangkan aspek perlindungan Hak Asasi Manusia (HAM) dan kelestarian lingkungan.
+- Berikan narasi yang tegas namun tetap santun, beretika, dan memperhitungkan penderitaan/kerugian emosional-sosial masyarakat yang mungkin timbul akibat penyalahgunaan wewenang.
+- Jika diminta mengembalikan format JSON, pastikan struktur data tetap valid sambil mempertahankan poin analisis yang berempati dan adil."""
 
 
 settings = Settings()
