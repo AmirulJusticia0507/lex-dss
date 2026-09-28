@@ -110,6 +110,11 @@ The script prompts for the password without echoing it. Public registration crea
 # Data hierarki hukum sudah di-seed via migration 001
 python scripts/seed_core_laws.py --apply
 
+# Impor seluruh UU nasional dari katalog dan PDF resmi Ditjen PP:
+# python scripts/import_national_laws.py --apply
+# Uji lima UU pertama terlebih dahulu:
+# python scripts/import_national_laws.py --apply --limit 5
+
 # Alternatif SQL manual:
 # psql "$DATABASE_URL" -f data/legal-seed/core-laws.sql
 ```
