@@ -14,6 +14,7 @@ const route = useRoute()
 const uiStore = useUIStore()
 const authStore = useAuthStore()
 onMounted(async () => {
+  uiStore.initTheme()
   if (!authStore.token) return
   try {
     const { data } = await authApi.getProfile()
@@ -233,6 +234,10 @@ function getNotificationTypeClass(type) {
         </div>
 
         <div class="header-actions">
+          <el-button circle size="small" class="theme-toggle" @click="uiStore.toggleTheme">
+            <el-icon><Moon v-if="uiStore.theme === 'light'" /><Sunny v-else /></el-icon>
+          </el-button>
+
           <div class="search-box">
             <el-input
               v-model="searchQuery"
@@ -440,6 +445,26 @@ export default {
 .sidebar-toggle:hover {
   background: #f3f4f6;
   color: #0ea5e9;
+}
+
+.theme-toggle {
+  background: transparent;
+  border: none;
+  color: #6b7280;
+}
+
+.theme-toggle:hover {
+  background: #f3f4f6;
+  color: #c9a84c;
+}
+
+.dark .theme-toggle {
+  color: #94a3b8;
+}
+
+.dark .theme-toggle:hover {
+  background: #334155;
+  color: #fbbf24;
 }
 
 .page-crumb {

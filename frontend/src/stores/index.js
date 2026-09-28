@@ -242,7 +242,7 @@ export const useUIStore = defineStore('ui', () => {
   const sidebarCollapsed = ref(false)
   const theme = ref('light')
   const notifications = ref([])
-  const activeTab = ref('dashboard')
+  const activeTab = ref('dark')
 
   function toggleSidebar() {
     sidebarCollapsed.value = !sidebarCollapsed.value
@@ -250,6 +250,41 @@ export const useUIStore = defineStore('ui', () => {
 
   function setSidebarCollapsed(collapsed) {
     sidebarCollapsed.value = collapsed
+  }
+
+  function toggleTheme() {
+    theme.value = theme.value === 'light' ? 'dark' : 'light'
+    applyTheme(theme.value)
+  }
+
+  function setTheme(newTheme) {
+    theme.value = newTheme
+    applyTheme(newTheme)
+  }
+
+  function applyTheme(newTheme) {
+    if (newTheme === 'dark') {
+      document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+    }
+    localStorage.setItem('lex-dss-theme', newTheme)
+  }
+
+  function initTheme() {
+    const saved = localStorage.getItem('lex-dss-theme')
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+    const initialTheme = saved || (prefersDark ? 'dark' : 'light')
+    theme.value = initialTheme
+    applyTheme(initialTheme)
+
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+      if (!localStorage.getItem('lex-dss-theme')) {
+        const newTheme = e.matches ? 'dark' : 'light'
+        theme.value = newTheme
+        applyTheme(newTheme)
+      }
+    })
   }
 
   function addNotification(notification) {
@@ -280,6 +315,9 @@ export const useUIStore = defineStore('ui', () => {
     activeTab,
     toggleSidebar,
     setSidebarCollapsed,
+    toggleTheme,
+    setTheme,
+    initTheme,
     addNotification,
     markAsRead,
     removeNotification,
