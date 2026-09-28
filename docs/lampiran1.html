@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<style>
+  @page { size: A4; margin: 2.5cm 3cm; }
+  body { font-family: 'Times New Roman', serif; font-size: 12pt; line-height: 1.6; color: #000; }
+  .header { text-align: center; border-bottom: 3px double #000; padding-bottom: 10px; margin-bottom: 20px; }
+  .header h1 { font-size: 14pt; margin: 0; }
+  h2 { font-size: 12pt; margin: 15px 0 5px 0; }
+  p { margin: 5px 0; }
+  table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+  th, td { border: 1px solid #000; padding: 5px; text-align: left; font-size: 10pt; }
+  th { background-color: #f0f0f0; }
+  pre { font-family: 'Courier New', monospace; font-size: 9pt; background: #f5f5f5; padding: 10px; border: 1px solid #ddd; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>LAMPIRAN 1: PROPOSAL TEKNIS RINGKAS LEX-DSS</h1>
+</div>
+
+<h2>1. Identitas Pengembang</h2>
+<table>
+  <tr><th>Item</th><th>Keterangan</th></tr>
+  <tr><td>Nama</td><td>Amirul Putra Justicia</td></tr>
+  <tr><td>Status</td><td>Pelaku Usaha Perseorangan</td></tr>
+  <tr><td>NIB</td><td>0612220049872</td></tr>
+  <tr><td>Email</td><td>amirulputra0507@gmail.com</td></tr>
+  <tr><td>Telepon</td><td>+6282134402383</td></tr>
+</table>
+
+<h2>2. Tentang Lex-DSS</h2>
+<p><strong>Lex-DSS (Lex Decision Support System)</strong> adalah sistem pendukung keputusan hukum berbasis kecerdasan buatan yang dirancang untuk:</p>
+<ul>
+  <li><strong>Deteksi Konflik Norma Hukum</strong> — menganalisis kontradiksi antar peraturan perundang-undangan (Lex Superior, Lex Specialis, Lex Posterior)</li>
+  <li><strong>Deviation Alert System</strong> — mendeteksi penyimpangan putusan pengadilan dari logika hukum murni</li>
+  <li><strong>AI Legal Assistant</strong> — memberikan opini hukum berbasis RAG (Retrieval-Augmented Generation) dengan anti-hallucination</li>
+  <li><strong>Wealth Anomaly Detection</strong> — mendeteksi indikasi penyalahgunaan wewenang berbasis data kekayaan</li>
+</ul>
+
+<h2>3. Masalah yang Dipecahkan</h2>
+<p>Indonesia memiliki lebih dari <strong>44.570 aturan hukum</strong> yang saling tumpang tindih. Akibatnya:</p>
+<ul>
+  <li>Konflik norma sulit dideteksi secara manual</li>
+  <li>Putusan pengadilan kadang menyimpang dari logika hukum murni</li>
+  <li>Penyalahgunaan wewenang oleh pejabat publik sulit dideteksi secara dini</li>
+  <li>Data kekayaan pejabat tidak terintegrasi dengan analisis risiko</li>
+</ul>
+
+<h2>4. Metode Pengembangan</h2>
+<h3>4.1 Teknologi AI</h3>
+<table>
+  <tr><th>Komponen</th><th>Teknologi</th><th>Fungsi</th></tr>
+  <tr><td>LLM</td><td>Ollama (deepseek-r1:8b)</td><td>Reasoning engine</td></tr>
+  <tr><td>Embedding</td><td>nomic-embed-text (768-dim)</td><td>Semantic search</td></tr>
+  <tr><td>Vector DB</td><td>PostgreSQL + pgvector</td><td>Penyimpanan & pencarian vektor</td></tr>
+  <tr><td>RAG Pipeline</td><td>LangChain</td><td>Retrieval-Augmented Generation</td></tr>
+  <tr><td>Rules Engine</td><td>Custom (Lex Integrity)</td><td>Deteksi konflik norma</td></tr>
+</table>
+
+<h3>4.2 Metode Analisis Data LHKPN</h3>
+<pre>
+Input: Data LHKPN publik (agregat/anonim)
+    ↓
+Preprocessing: Normalisasi, cleaning, validasi
+    ↓
+Feature Engineering:
+  - Wealth Velocity Score (perubahan harta tahunan)
+  - Income-to-Wealth Ratio
+  - Peer Comparison Score (z-score jabatan serupa)
+  - Asset Composition Anomaly
+    ↓
+Model: Rule-based + Statistical Anomaly Detection
+    ↓
+Output: Risk Score (0-100) + Flag untuk review manusia
+</pre>
+
+<h2>5. Arsitektur Sistem</h2>
+<pre>
+┌─────────────────────────────────────────────────────────┐
+│                    Lex-DSS Platform                      │
+├─────────────────────────────────────────────────────────┤
+│  Frontend (Vue.js)  │  Backend (FastAPI)  │  AI Engine  │
+│                     │                      │             │
+│  - Dashboard        │  - REST API          │  - RAG      │
+│  - Conflict Checker │  - Auth (JWT)        │  - Deviation│
+│  - DSS Panel        │  - Integration       │  - Anomaly  │
+│  - Legal Library    │  - Audit Log         │  - Rules    │
+└─────────────────────┴──────────────────────┴─────────────┘
+                              │
+                    ┌─────────┴─────────┐
+                    │   PostgreSQL      │
+                    │   + pgvector      │
+                    └───────────────────┘
+</pre>
+
+<h2>6. Timeline Pilot</h2>
+<table>
+  <tr><th>Fase</th><th>Aktivitas</th><th>Durasi</th></tr>
+  <tr><td>1</td><td>Persiapan infrastruktur & dataset</td><td>2 minggu</td></tr>
+  <tr><td>2</td><td>Development Wealth Anomaly Engine</td><td>3 minggu</td></tr>
+  <tr><td>3</td><td>Integration & Testing</td><td>2 minggu</td></tr>
+  <tr><td>4</td><td>Pilot Testing & Evaluasi</td><td>2 minggu</td></tr>
+  <tr><td>5</td><td>Laporan & Rekomendasi</td><td>1 minggu</td></tr>
+  <tr><td><strong>Total</strong></td><td></td><td><strong>10 minggu</strong></td></tr>
+</table>
+
+<h2>7. Expected Output</h2>
+<ol>
+  <li><strong>Wealth Anomaly Detection Engine</strong> — mampu mendeteksi anomali kekayaan dengan akurasi >80%</li>
+  <li><strong>Dashboard Monitoring</strong> — visualisasi kepatuhan LHKPN per instansi</li>
+  <li><strong>Laporan Pilot</strong> — evaluasi performa dan rekomendasi kebijakan</li>
+  <li><strong>Publikasi Ilmiah</strong> — jurnal/conference paper tentang deteksi anomali kekayaan berbasis AI</li>
+</ol>
+
+<h2>8. Keberlanjutan</h2>
+<p>Setelah pilot, Lex-DSS akan:</p>
+<ul>
+  <li>Diintegrasikan dengan sistem monitoring KPK</li>
+  <li>Dikembangkan menjadi tools open-source untuk akademisi</li>
+  <li>Diterapkan di instansi pemerintah untuk monitoring kepatuhan</li>
+</ul>
+
+<p style="margin-top: 30px;"><strong>Amirul Putra Justicia</strong><br>Pengembang Lex-DSS</p>
+
+</body>
+</html>

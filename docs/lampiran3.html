@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<style>
+  @page { size: A4; margin: 2.5cm 3cm; }
+  body { font-family: 'Times New Roman', serif; font-size: 12pt; line-height: 1.6; color: #000; }
+  .header { text-align: center; border-bottom: 3px double #000; padding-bottom: 10px; margin-bottom: 20px; }
+  .header h1 { font-size: 14pt; margin: 0; }
+  h2 { font-size: 12pt; margin: 15px 0 5px 0; }
+  p { margin: 5px 0; }
+  table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+  th, td { border: 1px solid #000; padding: 5px; text-align: left; font-size: 10pt; }
+  th { background-color: #f0f0f0; }
+  pre { font-family: 'Courier New', monospace; font-size: 9pt; background: #f5f5f5; padding: 10px; border: 1px solid #ddd; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>LAMPIRAN 3: DAFTAR DATA YANG DIPROSES</h1>
+</div>
+
+<h2>1. Data LHKPN (Pilot)</h2>
+<table>
+  <tr><th>No</th><th>Jenis Data</th><th>Sumber</th><th>Tujuan Pemrosesan</th><th>Retensi</th><th>Metode Penghapusan</th></tr>
+  <tr><td>1</td><td>Nama Pejabat Publik</td><td>e-Announcement KPK</td><td>Identifikasi subjek analisis</td><td>6 bulan</td><td>Hard delete dari database</td></tr>
+  <tr><td>2</td><td>Jabatan</td><td>e-Announcement KPK</td><td>Kategorisasi peer group</td><td>6 bulan</td><td>Hard delete dari database</td></tr>
+  <tr><td>3</td><td>Unit Kerja/Instansi</td><td>e-Announcement KPK</td><td>Analisis kepatuhan instansi</td><td>6 bulan</td><td>Hard delete dari database</td></tr>
+  <tr><td>4</td><td>Total Harta Kekayaan</td><td>e-Announcement KPK</td><td>Perhitungan anomaly score</td><td>6 bulan</td><td>Hard delete dari database</td></tr>
+  <tr><td>5</td><td>Tanggal Lapor</td><td>e-Announcement KPK</td><td>Analisis temporal</td><td>6 bulan</td><td>Hard delete dari database</td></tr>
+  <tr><td>6</td><td>Tahun Lapor</td><td>e-Announcement KPK</td><td>Analisis tren tahunan</td><td>6 bulan</td><td>Hard delete dari database</td></tr>
+</table>
+
+<h2>2. Data yang TIDAK Diproses</h2>
+<table>
+  <tr><th>No</th><th>Jenis Data</th><th>Alasan</th></tr>
+  <tr><td>1</td><td>NIK (Nomor Induk Kependudukan)</td><td>Data sensitif, tidak diperlukan untuk analisis agregat</td></tr>
+  <tr><td>2</td><td>Alamat Rumah</td><td>Data sensitif, tidak relevan untuk analisis</td></tr>
+  <tr><td>3</td><td>Nomor Rekening</td><td>Data sensitif, tidak diperlukan</td></tr>
+  <tr><td>4</td><td>Data Keluarga</td><td>Di luar scope pilot</td></tr>
+  <tr><td>5</td><td>Rincian Harta per Item</td><td>Hanya total agregat yang digunakan</td></tr>
+  <tr><td>6</td><td>Penerimaan/Pengeluaran Detail</td><td>Hanya data agregat yang digunakan</td></tr>
+</table>
+
+<h2>3. Data Internal Lex-DSS</h2>
+<table>
+  <tr><th>No</th><th>Jenis Data</th><th>Sumber</th><th>Tujuan</th><th>Retensi</th><th>Metode Penghapusan</th></tr>
+  <tr><td>1</td><td>User Account</td><td>Registrasi</td><td>Autentikasi sistem</td><td>Selama akun aktif</td><td>Soft delete + anonymize</td></tr>
+  <tr><td>2</td><td>Audit Log</td><td>Sistem</td><td>Tracking aktivitas</td><td>1 tahun</td><td>Hard delete</td></tr>
+  <tr><td>3</td><td>Analysis Result</td><td>Sistem</td><td>Output analisis</td><td>6 bulan</td><td>Hard delete</td></tr>
+  <tr><td>4</td><td>Session Token</td><td>Sistem</td><td>Autentikasi</td><td>24 jam</td><td>Auto-expire</td></tr>
+</table>
+
+<h2>4. Data Flow Diagram</h2>
+<pre>
+┌─────────────────┐
+│  e-LHKPN KPK    │
+│  (Data Source)  │
+└────────┬────────┘
+         │
+         │ (Manual Input / API - dengan persetujuan)
+         ▼
+┌─────────────────┐
+│  Staging Area   │
+│  (Validation)   │
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│  Processing     │
+│  (Anonymization)│
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│  Storage        │
+│  (Encrypted)    │
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│  Analysis       │
+│  (Aggregated)   │
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│  Output         │
+│  (Anonymized)   │
+└─────────────────┘
+         │
+         ▼
+┌─────────────────┐
+│  Deletion       │
+│  (After 6 mo)   │
+└─────────────────┘
+</pre>
+
+<h2>5. Klasifikasi Data</h2>
+<table>
+  <tr><th>Level</th><th>Contoh</th><th>Handling</th></tr>
+  <tr><td><strong>Public</strong></td><td>Nama pejabat, jabatan, total harta (agregat)</td><td>Bisa diproses dengan persetujuan</td></tr>
+  <tr><td><strong>Internal</strong></td><td>User account, analysis result</td><td>Akses terbatas tim</td></tr>
+  <tr><td><strong>Confidential</strong></td><td>Audit log, system config</td><td>Enkripsi + access control</td></tr>
+  <tr><td><strong>Restricted</strong></td><td>NIK, alamat, data keluarga</td><td>TIDAK DIPROSES</td></tr>
+</table>
+
+<h2>6. Retensi & Penghapusan</h2>
+<pre>
+Timeline:
+─────────────────────────────────────────────────────────►
+0         1         2         3         4         5         6 (bulan)
+│         │         │         │         │         │         │
+│◄─────── Active Processing ───────►│         │         │
+│                                   │         │         │
+│                                   ◄── Archive ──►│         │
+│                                             │         │
+│                                             ◄─ Delete ─►│
+</pre>
+
+<p><strong>Prosedur Penghapusan:</strong></p>
+<ol>
+  <li>Hard delete dari database utama</li>
+  <li>Hard delete dari backup (maks 30 hari setelah penghapusan)</li>
+  <li>Verifikasi penghapusan oleh admin</li>
+  <li>Log penghapusan disimpan untuk audit</li>
+</ol>
+
+</body>
+</html>
