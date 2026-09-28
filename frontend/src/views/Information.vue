@@ -43,31 +43,78 @@ const page = computed(() => pages[route.meta.infoPage] || pages.about)
 </script>
 
 <template>
-  <div class="min-h-screen bg-slate-50 text-slate-800">
-    <header class="border-b border-slate-200 bg-white">
-      <div class="mx-auto flex max-w-5xl items-center justify-between px-5 py-4">
-        <router-link class="text-lg font-bold text-slate-950" to="/">Lex-DSS</router-link>
-        <router-link class="text-sm font-semibold text-sky-700 hover:text-sky-900" to="/login">Masuk</router-link>
+  <div class="info-page">
+    <header class="info-hero">
+      <div class="topbar">
+        <router-link class="brand" to="/">LEX<span>DSS</span></router-link>
+        <nav aria-label="Navigasi publik">
+          <router-link to="/tentang">Tentang</router-link>
+          <router-link to="/privasi-cookies">Privasi</router-link>
+          <router-link to="/bantuan">Bantuan</router-link>
+          <router-link class="login-link" to="/login">Masuk</router-link>
+        </nav>
+      </div>
+      <div class="hero-copy">
+        <p>{{ page.eyebrow }}</p>
+        <h1>{{ page.title }}</h1>
+        <span>{{ page.intro }}</span>
       </div>
     </header>
 
-    <main class="mx-auto max-w-3xl px-5 py-12 sm:py-16">
-      <p class="text-sm font-semibold text-sky-700">{{ page.eyebrow }}</p>
-      <h1 class="mt-2 text-3xl font-bold text-slate-950 sm:text-4xl">{{ page.title }}</h1>
-      <p class="mt-5 text-base leading-7 text-slate-600">{{ page.intro }}</p>
-
-      <div class="mt-10 divide-y divide-slate-200 border-y border-slate-200">
-        <section v-for="section in page.sections" :key="section[0]" class="py-7">
-          <h2 class="text-lg font-semibold text-slate-900">{{ section[0] }}</h2>
-          <p class="mt-2 leading-7 text-slate-600">{{ section[1] }}</p>
+    <main class="info-content">
+      <div class="section-list">
+        <section v-for="(section, index) in page.sections" :key="section[0]">
+          <span>{{ String(index + 1).padStart(2, '0') }}</span>
+          <div>
+            <h2>{{ section[0] }}</h2>
+            <p>{{ section[1] }}</p>
+          </div>
         </section>
       </div>
-
-      <nav class="mt-8 flex flex-wrap gap-x-5 gap-y-2 text-sm" aria-label="Halaman informasi">
-        <router-link class="text-sky-700 hover:text-sky-900" to="/tentang">Tentang</router-link>
-        <router-link class="text-sky-700 hover:text-sky-900" to="/privasi-cookies">Privasi &amp; Cookies</router-link>
-        <router-link class="text-sky-700 hover:text-sky-900" to="/bantuan">Bantuan</router-link>
-      </nav>
     </main>
+
+    <footer>
+      <span>Lex-DSS</span>
+      <p>Sistem pendukung keputusan hukum Indonesia</p>
+    </footer>
   </div>
 </template>
+
+<style scoped>
+.info-page { min-height: 100dvh; overflow-x: hidden; background: #f7f9f8; color: #172126; }
+.info-hero { position: relative; isolation: isolate; min-height: min(560px, 65vh); display: flex; flex-direction: column; justify-content: space-between; padding: 28px clamp(24px, 6vw, 88px) 64px; color: #fff; background: url('@/assets/images/legal-workspace.png') center 54% / cover no-repeat; }
+.info-hero::before { position: absolute; z-index: -1; inset: 0; background: rgba(7, 18, 24, .66); content: ''; }
+.topbar { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+.brand { color: #fff; font-size: 18px; font-weight: 800; text-decoration: none; }
+.brand span { color: #55c2bd; }
+.topbar nav { display: flex; align-items: center; gap: clamp(16px, 3vw, 36px); }
+.topbar nav a { color: #dbe6e7; font-size: 13px; font-weight: 600; text-decoration: none; }
+.topbar nav a:hover, .topbar nav a.router-link-active { color: #fff; }
+.topbar .login-link { padding: 9px 16px; border: 1px solid rgba(255,255,255,.6); }
+.hero-copy { max-width: 760px; }
+.hero-copy p { margin: 0 0 12px; color: #69d3cc; font-size: 12px; font-weight: 800; text-transform: uppercase; }
+.hero-copy h1 { max-width: 700px; margin: 0; overflow-wrap: anywhere; font-size: clamp(42px, 6vw, 76px); line-height: 1.02; letter-spacing: 0; }
+.hero-copy span { display: block; max-width: 680px; margin-top: 22px; color: #dbe5e6; font-size: 17px; line-height: 1.7; }
+.info-content { max-width: 960px; margin: 0 auto; padding: 72px 24px 96px; }
+.section-list { border-top: 1px solid #cad5d2; }
+.section-list section { display: grid; grid-template-columns: 64px 1fr; gap: 24px; padding: 36px 0; border-bottom: 1px solid #cad5d2; }
+.section-list section > span { color: #087f78; font-size: 13px; font-weight: 800; }
+.section-list section > div { min-width: 0; }
+.section-list h2 { margin: 0 0 10px; color: #172126; font-size: 21px; overflow-wrap: anywhere; }
+.section-list p { max-width: 760px; margin: 0; color: #58666c; font-size: 15px; line-height: 1.8; }
+footer { display: flex; justify-content: space-between; gap: 24px; padding: 26px clamp(24px, 6vw, 88px); border-top: 1px solid #dce4e1; background: #fff; color: #647278; font-size: 12px; }
+footer span { color: #172126; font-weight: 800; }
+footer p { margin: 0; }
+
+@media (max-width: 640px) {
+  .info-hero { min-height: 500px; padding: 22px 20px 44px; background-position: 38% center; }
+  .topbar { align-items: flex-start; }
+  .topbar nav { justify-content: flex-end; flex-wrap: wrap; gap: 10px 16px; }
+  .topbar nav a:not(.login-link) { display: none; }
+  .hero-copy span { font-size: 15px; }
+  .hero-copy h1 { font-size: 36px; line-height: 1.08; }
+  .info-content { padding: 48px 20px 64px; }
+  .section-list section { grid-template-columns: 38px 1fr; gap: 12px; padding: 28px 0; }
+  footer { flex-direction: column; gap: 5px; }
+}
+</style>

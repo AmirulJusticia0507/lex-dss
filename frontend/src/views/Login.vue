@@ -79,22 +79,24 @@ loadCaptcha()
 </script>
 
 <template>
-  <div class="mx-auto flex min-h-[75vh] w-full max-w-5xl items-center justify-center px-4 py-10">
-    <div class="grid w-full overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl md:grid-cols-[1fr_1.1fr]">
-      <section class="hidden flex-col justify-between bg-slate-950 p-10 text-white md:flex">
-        <div>
-          <p class="text-sm font-semibold uppercase tracking-[0.2em] text-sky-300">Lex-DSS</p>
-          <h1 class="mt-8 text-3xl font-bold leading-tight">Sistem pendukung keputusan hukum</h1>
-          <p class="mt-4 max-w-sm text-sm leading-6 text-slate-300">Analisis, kelola referensi, dan akses fitur sesuai peran akun Anda.</p>
-        </div>
-        <p class="text-xs text-slate-400">Hak akses akun ditentukan oleh administrator.</p>
-      </section>
-      <section class="p-7 sm:p-10">
-        <p class="text-sm font-semibold text-sky-700">{{ isRegister ? 'Buat akun pengguna' : 'Selamat datang kembali' }}</p>
-        <h2 class="mt-2 text-2xl font-bold text-slate-900">{{ isRegister ? 'Daftar Lex-DSS' : 'Masuk ke akun' }}</h2>
-        <p class="mt-2 text-sm text-slate-500">{{ isRegister ? 'Akun baru mendapat role Pengguna. Administrator dapat mengubah hak akses.' : 'Gunakan email dan password akun Anda.' }}</p>
+  <main class="login-shell">
+    <section class="login-story">
+      <router-link class="brand" to="/">LEX<span>DSS</span></router-link>
+      <div class="story-copy">
+        <p class="story-kicker">Legal decision support system</p>
+        <h1>Keputusan hukum yang lebih terang.</h1>
+        <p>Telusuri dasar hukum, uji konsistensi norma, dan dokumentasikan pertimbangan dalam satu ruang kerja.</p>
+      </div>
+      <p class="story-note">Analisis terstruktur. Sumber tetap dapat diverifikasi.</p>
+    </section>
 
-        <el-form class="mt-7" label-position="top" @submit.prevent="submit">
+    <section class="login-panel">
+      <div class="form-wrap">
+        <p class="form-kicker">{{ isRegister ? 'Akun baru' : 'Akses aman' }}</p>
+        <h2>{{ isRegister ? 'Daftar ke Lex-DSS' : 'Selamat datang' }}</h2>
+        <p class="form-intro">{{ isRegister ? 'Akun baru mendapat role Pengguna. Administrator dapat mengubah hak akses.' : 'Masuk untuk melanjutkan pekerjaan hukum Anda.' }}</p>
+
+        <el-form class="login-form" label-position="top" @submit.prevent="submit">
           <template v-if="isRegister">
             <el-form-item label="Nama lengkap"><el-input v-model="form.full_name" autocomplete="name" /></el-form-item>
             <el-form-item label="Instansi"><el-input v-model="form.institution" autocomplete="organization" /></el-form-item>
@@ -102,7 +104,6 @@ loadCaptcha()
           <el-form-item label="Email"><el-input v-model="form.email" type="email" autocomplete="email" /></el-form-item>
           <el-form-item label="Password"><el-input v-model="form.password" type="password" show-password :autocomplete="isRegister ? 'new-password' : 'current-password'" /></el-form-item>
 
-          <!-- CAPTCHA Section -->
           <el-form-item v-if="captchaEnabled && captchaChallenge" label="Verifikasi Keamanan">
             <div class="flex gap-2 w-full">
               <el-input
@@ -121,22 +122,58 @@ loadCaptcha()
                 :loading="loading"
               />
             </div>
-            <small class="text-slate-400 text-xs">Selesaikan soal matematika di atas</small>
+            <small class="captcha-help">Selesaikan soal matematika di atas</small>
           </el-form-item>
 
-          <el-button class="!mt-2 !w-full" type="primary" native-type="submit" :loading="loading">{{ isRegister ? 'Buat akun' : 'Masuk' }}</el-button>
+          <el-button class="submit-button" type="primary" native-type="submit" :loading="loading">{{ isRegister ? 'Buat akun' : 'Masuk' }}</el-button>
         </el-form>
 
-        <p class="mt-6 text-center text-sm text-slate-500">
+        <p class="account-switch">
           {{ isRegister ? 'Sudah punya akun?' : 'Belum punya akun?' }}
-          <button class="font-semibold text-sky-700 hover:text-sky-900" type="button" @click="isRegister = !isRegister; loadCaptcha()">{{ isRegister ? 'Masuk' : 'Daftar sebagai pengguna' }}</button>
+          <button type="button" @click="isRegister = !isRegister; loadCaptcha()">{{ isRegister ? 'Masuk' : 'Daftar sebagai pengguna' }}</button>
         </p>
-        <nav class="mt-6 flex flex-wrap justify-center gap-x-4 gap-y-2 border-t border-slate-100 pt-5 text-xs" aria-label="Informasi">
-          <router-link class="text-slate-500 hover:text-sky-700" to="/tentang">Tentang</router-link>
-          <router-link class="text-slate-500 hover:text-sky-700" to="/privasi-cookies">Privasi &amp; Cookies</router-link>
-          <router-link class="text-slate-500 hover:text-sky-700" to="/bantuan">Bantuan</router-link>
+        <nav class="public-links" aria-label="Informasi">
+          <router-link to="/tentang">Tentang</router-link>
+          <router-link to="/privasi-cookies">Privasi &amp; Cookies</router-link>
+          <router-link to="/bantuan">Bantuan</router-link>
         </nav>
-      </section>
-    </div>
-  </div>
+      </div>
+    </section>
+  </main>
 </template>
+
+<style scoped>
+.login-shell { min-height: 100dvh; display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(390px, .75fr); background: #fff; }
+.login-story { position: relative; isolation: isolate; min-height: 100dvh; display: flex; flex-direction: column; justify-content: space-between; padding: clamp(32px, 5vw, 72px); color: #fff; background: url('@/assets/images/legal-workspace.png') center / cover no-repeat; }
+.login-story::before { position: absolute; z-index: -1; inset: 0; background: rgba(8, 20, 27, .46); content: ''; }
+.brand { width: max-content; color: #fff; font-size: 18px; font-weight: 800; text-decoration: none; }
+.brand span { color: #55c2bd; }
+.story-copy { max-width: 650px; }
+.story-kicker, .form-kicker { margin: 0; color: #69d3cc; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0; }
+.story-copy h1 { max-width: 610px; margin: 14px 0 20px; font-size: clamp(42px, 5.6vw, 78px); line-height: 1.02; letter-spacing: 0; }
+.story-copy > p:last-child { max-width: 530px; margin: 0; color: #d7e2e4; font-size: 17px; line-height: 1.7; }
+.story-note { margin: 0; color: #cbd7d9; font-size: 13px; }
+.login-panel { min-height: 100dvh; display: flex; align-items: center; justify-content: center; padding: 40px clamp(28px, 5vw, 72px); background: #fff; }
+.form-wrap { width: min(100%, 420px); }
+.form-kicker { color: #087f78; }
+.form-wrap h2 { margin: 10px 0 8px; color: #111827; font-size: 34px; line-height: 1.15; }
+.form-intro { margin: 0; color: #64748b; font-size: 14px; line-height: 1.65; }
+.login-form { margin-top: 30px; }
+.captcha-help { color: #94a3b8; font-size: 12px; }
+.submit-button { width: 100%; height: 44px; margin-top: 4px; font-weight: 700; }
+.account-switch { margin: 22px 0 0; color: #64748b; text-align: center; font-size: 14px; }
+.account-switch button { color: #087f78; font-weight: 700; }
+.public-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 20px; margin-top: 28px; padding-top: 22px; border-top: 1px solid #e2e8f0; }
+.public-links a { color: #64748b; font-size: 12px; text-decoration: none; }
+.public-links a:hover { color: #087f78; }
+:deep(.el-input__wrapper) { min-height: 43px; box-shadow: 0 0 0 1px #cbd5e1 inset; }
+:deep(.el-input__wrapper.is-focus) { box-shadow: 0 0 0 1px #087f78 inset; }
+
+@media (max-width: 860px) {
+  .login-shell { grid-template-columns: 1fr; }
+  .login-story { min-height: 260px; padding: 28px; background-position: 35% 62%; }
+  .story-copy h1 { max-width: 520px; margin-bottom: 0; font-size: clamp(34px, 9vw, 52px); }
+  .story-copy > p:last-child, .story-note { display: none; }
+  .login-panel { min-height: auto; padding: 38px 24px 48px; }
+}
+</style>

@@ -242,7 +242,7 @@ function getNotificationTypeClass(type) {
         </div>
       </el-header>
 
-      <el-main class="main-content">
+      <el-main class="main-content" :class="{ 'standalone-main': isLoginRoute || isPublicInfoRoute }">
         <router-view v-slot="{ Component }">
           <transition name="page" mode="out-in">
             <component :is="Component" />
@@ -491,6 +491,10 @@ export default {
   flex: 1;
   overflow-y: auto;
   background: #f4f7fb;
+}
+
+.main-content.standalone-main {
+  padding: 0 !important;
 }
 
 /* Page transition */
