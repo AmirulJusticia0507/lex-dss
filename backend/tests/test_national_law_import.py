@@ -17,6 +17,13 @@ def test_parses_official_catalog_card_and_status():
     assert law.status == "tidak_berlaku"
 
 
+def test_keeps_law_when_ditjen_pp_card_has_no_pdf():
+    page = '''<div class="col-md-12"><p style="padding-top: -2;">Undang-Undang Nomor 1 Tahun 1945</p>
+    <p><a href="/id/uu-no-1-tahun-1945">Contoh</a></p><div class="col-md-12">'''
+    law = parse_law_page(page)[0]
+    assert law.pdf_url is None
+
+
 def test_splits_articles_and_omits_explanation():
     text = "Pasal 1\nIsi satu.\nPasal 2A\nIsi dua.\nPENJELASAN\nPasal 1\nBukan isi."
     assert parse_articles(text) == [("1", "Isi satu."), ("2A", "Isi dua.")]

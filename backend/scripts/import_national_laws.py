@@ -14,6 +14,7 @@ Usage (from backend/):
 import argparse
 import asyncio
 import html
+import json
 import re
 import shutil
 import subprocess
@@ -28,21 +29,22 @@ import httpx
 BACKEND_DIR = Path(__file__).resolve().parents[1]
 BASE_URL = "https://peraturan.go.id"
 LIST_URL = f"{BASE_URL}/uu?page={{page}}"
+FALLBACK_PATH = BACKEND_DIR / "data" / "legal-seed" / "national-law-fallbacks.json"
 ARTICLE_PATTERN = re.compile(r"(?im)^\s*Pasal\s+(\d+[A-Z]?)\s*(?=\n|$)")
 TOTAL_PATTERN = re.compile(r"data dari\s+([\d.]+)\s+Peraturan", re.IGNORECASE)
 CARD_PATTERN = re.compile(
     r'<p style="padding-top: -2;">(?P<label>.*?)</p>\s*'
-    r'<p><a href="(?P<detail>/id/uu-[^"]+)"[^>]*>(?P<title>.*?)</a></p>.*?'
-    r'Dokumen :\s*<a href="(?P<pdf>/files/[^"]+\.pdf)"',
+    r'<p><a href="(?P<detail>/id/uu-[^"]+)"[^>]*>(?P<title>.*?)</a></p>',
     re.DOTALL | re.IGNORECASE,
 )
+PDF_PATTERN = re.compile(r'Dokumen :\s*<a href="(?P<pdf>/files/[^"]+\.pdf)"', re.IGNORECASE)
 
 
 @dataclass(frozen=True)
 class Law:
     title: str
     catalog_url: str
-    pdf_url: str
+    pdf_url: str | None
     status: str
 
 
@@ -56,11 +58,12 @@ def parse_law_page(page_html: str) -> list[Law]:
     for match in CARD_PATTERN.finditer(page_html):
         card_end = page_html.find('<div class="col-md-12">', match.end())
         card = page_html[match.start() : card_end if card_end != -1 else None]
+        pdf = PDF_PATTERN.search(card)
         laws.append(
             Law(
                 title=text_only(match.group("label")) + " tentang " + text_only(match.group("title")),
                 catalog_url=urljoin(BASE_URL, match.group("detail")),
-                pdf_url=urljoin(BASE_URL, match.group("pdf")),
+                pdf_url=urljoin(BASE_URL, pdf.group("pdf")) if pdf else None,
                 status="tidak_berlaku" if "Tidak Berlaku" in card else "berlaku",
             )
         )
@@ -87,6 +90,20 @@ def parse_articles(pdf_text: str) -> list[tuple[str, str]]:
     return articles
 
 
+def load_fallbacks() -> dict[str, list[dict[str, str]]]:
+    """Load manually verified JDIHN/BPK PDF URLs keyed by Ditjen PP catalog URL."""
+    if not FALLBACK_PATH.exists():
+        return {}
+    fallbacks = json.loads(FALLBACK_PATH.read_text(encoding="utf-8"))["sources"]
+    for catalog_url, sources in fallbacks.items():
+        if not catalog_url.startswith(BASE_URL) or not isinstance(sources, list):
+            raise ValueError(f"Invalid fallback entry: {catalog_url}")
+        for source in sources:
+            if set(source) != {"name", "url"} or not source["url"].startswith("https://"):
+                raise ValueError(f"Invalid fallback source for {catalog_url}")
+    return fallbacks
+
+
 async def fetch(client: httpx.AsyncClient, url: str) -> httpx.Response:
     for attempt in range(3):
         try:
@@ -98,6 +115,25 @@ async def fetch(client: httpx.AsyncClient, url: str) -> httpx.Response:
                 raise
             await asyncio.sleep(attempt + 1)
     raise AssertionError("unreachable")
+
+
+async def fetch_articles(
+    law: Law, fallbacks: dict[str, list[dict[str, str]]], client: httpx.AsyncClient
+) -> tuple[list[tuple[str, str]], str, str, int]:
+    sources: list[dict[str, str]] = []
+    if law.pdf_url:
+        sources.append({"name": "Ditjen PP", "url": law.pdf_url})
+    sources.extend(fallbacks.get(law.catalog_url, []))
+    errors: list[str] = []
+    for priority, source in enumerate(sources, start=1):
+        try:
+            articles = extract_pdf_articles((await fetch(client, source["url"])).content)
+            if articles:
+                return articles, source["name"], source["url"], priority
+            errors.append(f"{source['name']}: no Pasal headings")
+        except Exception as error:
+            errors.append(f"{source['name']}: {error}")
+    raise ValueError("; ".join(errors) or "No official PDF or configured fallback source.")
 
 
 async def discover_laws(client: httpx.AsyncClient) -> list[Law]:
@@ -126,7 +162,9 @@ def extract_pdf_articles(pdf_bytes: bytes) -> list[tuple[str, str]]:
         return parse_articles(text_path.read_text(encoding="utf-8", errors="replace"))
 
 
-async def import_laws(laws: list[Law], client: httpx.AsyncClient) -> None:
+async def import_laws(
+    laws: list[Law], fallbacks: dict[str, list[dict[str, str]]], client: httpx.AsyncClient
+) -> None:
     sys.path.insert(0, str(BACKEND_DIR))
     from sqlalchemy import select, text
 
@@ -150,10 +188,9 @@ async def import_laws(laws: list[Law], client: httpx.AsyncClient) -> None:
         created = updated = skipped = failed = 0
         for number, law in enumerate(laws, start=1):
             try:
-                response = await fetch(client, law.pdf_url)
-                articles = extract_pdf_articles(response.content)
-                if not articles:
-                    raise ValueError("No Pasal headings found in PDF text.")
+                articles, source_name, source_url, source_priority = await fetch_articles(
+                    law, fallbacks, client
+                )
 
                 result = await session.execute(
                     select(LegalArticle).where(LegalArticle.document_title == law.title)
@@ -161,9 +198,10 @@ async def import_laws(laws: list[Law], client: httpx.AsyncClient) -> None:
                 existing = {item.article_number: item for item in result.scalars()}
                 for article_number, content in articles:
                     metadata = {
-                        "source": "Ditjen PP",
+                        "source": source_name,
                         "catalog_url": law.catalog_url,
-                        "official_pdf_url": law.pdf_url,
+                        "source_url": source_url,
+                        "source_priority": source_priority,
                         "status": law.status,
                         "transcription_status": "extracted_from_official_pdf",
                         "verification_status": "requires_legal_review",
@@ -206,13 +244,14 @@ async def run(apply: bool, limit: int | None) -> None:
         headers={"User-Agent": "Lex-DSS legal corpus importer/1.0"},
     ) as client:
         laws = await discover_laws(client)
+        fallbacks = load_fallbacks()
         if limit is not None:
             laws = laws[:limit]
         print(f"Discovered {len(laws)} national laws from {BASE_URL}/uu.")
         if not apply:
             print("Dry run only. Pass --apply to download PDFs and write the database.")
             return
-        await import_laws(laws, client)
+        await import_laws(laws, fallbacks, client)
 
 
 def main() -> None:

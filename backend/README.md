@@ -114,6 +114,8 @@ python scripts/seed_core_laws.py --apply
 # python scripts/import_national_laws.py --apply
 # Uji lima UU pertama terlebih dahulu:
 # python scripts/import_national_laws.py --apply --limit 5
+# PDF yang tidak tersedia di Ditjen PP dapat dipetakan secara terverifikasi di:
+# data/legal-seed/national-law-fallbacks.json (JDIHN, lalu JDIH BPK)
 
 # Alternatif SQL manual:
 # psql "$DATABASE_URL" -f data/legal-seed/core-laws.sql
