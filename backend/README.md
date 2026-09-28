@@ -108,7 +108,10 @@ The script prompts for the password without echoing it. Public registration crea
 
 ```bash
 # Data hierarki hukum sudah di-seed via migration 001
-# Tambahkan legal articles via API atau script custom
+python scripts/seed_core_laws.py --apply
+
+# Alternatif SQL manual:
+# psql "$DATABASE_URL" -f data/legal-seed/core-laws.sql
 ```
 
 ### 6. Run Server

@@ -428,6 +428,166 @@
         "metadata_note": "Halaman katalog mencantumkan tanggal pengundangan 7 Desember 2025, tetapi PDF menyebut pengundangan 17 Desember 2025; rujuk PDF dan verifikasi metadata tanggal.",
         "previous_official_source_url": "https://peraturan.bpk.go.id/Details/337302/uu-no-20-tahun-2025"
       }
+    },
+    {
+      "document_title": "Undang-Undang Nomor 1 Tahun 2023 tentang Kitab Undang-Undang Hukum Pidana",
+      "article_number": "1",
+      "domain": "criminal",
+      "hierarchy_type": "UU",
+      "content": "(1) Suatu perbuatan tidak dapat dipidana, kecuali berdasarkan kekuatan ketentuan peraturan perundang-undangan pidana yang telah ada sebelum perbuatan dilakukan.\n(2) Dalam menetapkan adanya tindak pidana dilarang digunakan analogi.",
+      "meta_data": {
+        "act": "UU 1/2023",
+        "status": "berlaku",
+        "effective_date": "2026-01-02",
+        "source_url": "https://peraturan.go.id/id/uu-no-1-tahun-2023",
+        "transcription_status": "manual_starter_excerpt",
+        "verification_status": "not_independently_legal_reviewed"
+      }
+    },
+    {
+      "document_title": "Undang-Undang Nomor 1 Tahun 2023 tentang Kitab Undang-Undang Hukum Pidana",
+      "article_number": "38",
+      "domain": "criminal",
+      "hierarchy_type": "UU",
+      "content": "Setiap Orang yang pada waktu melakukan Tindak Pidana menyandang disabilitas mental dan/atau disabilitas intelektual dapat dikurangi pidananya dan/atau dikenai tindakan.",
+      "meta_data": {
+        "act": "UU 1/2023",
+        "status": "berlaku",
+        "effective_date": "2026-01-02",
+        "source_url": "https://peraturan.go.id/id/uu-no-1-tahun-2023",
+        "transcription_status": "manual_starter_excerpt",
+        "verification_status": "not_independently_legal_reviewed"
+      }
+    },
+    {
+      "document_title": "Kitab Undang-Undang Hukum Perdata",
+      "article_number": "1320",
+      "domain": "civil",
+      "hierarchy_type": "UU",
+      "content": "Supaya terjadi persetujuan yang sah, perlu dipenuhi empat syarat: kesepakatan mereka yang mengikatkan dirinya; kecakapan untuk membuat suatu perikatan; suatu pokok persoalan tertentu; dan suatu sebab yang tidak terlarang.",
+      "meta_data": {
+        "act": "KUHPerdata",
+        "source_url": "https://peraturan.bpk.go.id/Details/17229/kuhperdata",
+        "transcription_status": "manual_starter_excerpt",
+        "verification_status": "not_independently_legal_reviewed"
+      }
+    },
+    {
+      "document_title": "Kitab Undang-Undang Hukum Perdata",
+      "article_number": "1338",
+      "domain": "civil",
+      "hierarchy_type": "UU",
+      "content": "Semua persetujuan yang dibuat sesuai dengan undang-undang berlaku sebagai undang-undang bagi mereka yang membuatnya. Persetujuan itu tidak dapat ditarik kembali selain dengan kesepakatan kedua belah pihak, atau karena alasan-alasan yang ditentukan oleh undang-undang. Persetujuan harus dilaksanakan dengan itikad baik.",
+      "meta_data": {
+        "act": "KUHPerdata",
+        "source_url": "https://peraturan.bpk.go.id/Details/17229/kuhperdata",
+        "transcription_status": "manual_starter_excerpt",
+        "verification_status": "not_independently_legal_reviewed"
+      }
+    },
+    {
+      "document_title": "Kitab Undang-Undang Hukum Perdata",
+      "article_number": "1365",
+      "domain": "civil",
+      "hierarchy_type": "UU",
+      "content": "Tiap perbuatan yang melanggar hukum dan membawa kerugian kepada orang lain mewajibkan orang yang karena salahnya menerbitkan kerugian itu mengganti kerugian tersebut.",
+      "meta_data": {
+        "act": "KUHPerdata",
+        "source_url": "https://peraturan.bpk.go.id/Details/17229/kuhperdata",
+        "transcription_status": "manual_starter_excerpt",
+        "verification_status": "not_independently_legal_reviewed"
+      }
+    },
+    {
+      "document_title": "Undang-Undang Nomor 12 Tahun 2011 tentang Pembentukan Peraturan Perundang-undangan",
+      "article_number": "7",
+      "domain": "constitutional",
+      "hierarchy_type": "UU",
+      "content": "(1) Jenis dan hierarki Peraturan Perundang-undangan terdiri atas: Undang-Undang Dasar Negara Republik Indonesia Tahun 1945; Ketetapan Majelis Permusyawaratan Rakyat; Undang-Undang/Peraturan Pemerintah Pengganti Undang-Undang; Peraturan Pemerintah; Peraturan Presiden; Peraturan Daerah Provinsi; dan Peraturan Daerah Kabupaten/Kota.\n(2) Kekuatan hukum Peraturan Perundang-undangan sesuai dengan hierarki sebagaimana dimaksud pada ayat (1).",
+      "meta_data": {
+        "act": "UU 12/2011",
+        "source_url": "https://peraturan.go.id/id/uu-no-12-tahun-2011",
+        "transcription_status": "manual_starter_excerpt",
+        "verification_status": "not_independently_legal_reviewed"
+      }
+    },
+    {
+      "document_title": "Undang-Undang Nomor 48 Tahun 2009 tentang Kekuasaan Kehakiman",
+      "article_number": "3",
+      "domain": "judiciary",
+      "hierarchy_type": "UU",
+      "content": "(1) Dalam menjalankan tugas dan fungsinya, hakim dan hakim konstitusi wajib menjaga kemandirian peradilan.\n(2) Segala campur tangan dalam urusan peradilan oleh pihak lain di luar kekuasaan kehakiman dilarang, kecuali dalam hal-hal sebagaimana dimaksud dalam Undang-Undang Dasar Negara Republik Indonesia Tahun 1945.",
+      "meta_data": {
+        "act": "UU 48/2009",
+        "source_url": "https://peraturan.go.id/id/uu-no-48-tahun-2009",
+        "transcription_status": "manual_starter_excerpt",
+        "verification_status": "not_independently_legal_reviewed"
+      }
+    },
+    {
+      "document_title": "Undang-Undang Nomor 48 Tahun 2009 tentang Kekuasaan Kehakiman",
+      "article_number": "5",
+      "domain": "judiciary",
+      "hierarchy_type": "UU",
+      "content": "(1) Hakim dan hakim konstitusi wajib menggali, mengikuti, dan memahami nilai-nilai hukum dan rasa keadilan yang hidup dalam masyarakat.\n(2) Hakim dan hakim konstitusi harus memiliki integritas dan kepribadian yang tidak tercela, jujur, adil, profesional, dan berpengalaman di bidang hukum.\n(3) Hakim dan hakim konstitusi wajib menaati Kode Etik dan Pedoman Perilaku Hakim.",
+      "meta_data": {
+        "act": "UU 48/2009",
+        "source_url": "https://peraturan.go.id/id/uu-no-48-tahun-2009",
+        "transcription_status": "manual_starter_excerpt",
+        "verification_status": "not_independently_legal_reviewed"
+      }
+    },
+    {
+      "document_title": "Undang-Undang Nomor 48 Tahun 2009 tentang Kekuasaan Kehakiman",
+      "article_number": "10",
+      "domain": "judiciary",
+      "hierarchy_type": "UU",
+      "content": "(1) Pengadilan dilarang menolak untuk memeriksa, mengadili, dan memutus suatu perkara yang diajukan dengan dalih bahwa hukum tidak ada atau kurang jelas, melainkan wajib untuk memeriksa dan mengadilinya.\n(2) Ketentuan sebagaimana dimaksud pada ayat (1) tidak menutup usaha penyelesaian perkara perdata secara perdamaian.",
+      "meta_data": {
+        "act": "UU 48/2009",
+        "source_url": "https://peraturan.go.id/id/uu-no-48-tahun-2009",
+        "transcription_status": "manual_starter_excerpt",
+        "verification_status": "not_independently_legal_reviewed"
+      }
+    },
+    {
+      "document_title": "Undang-Undang Nomor 49 Tahun 2009 tentang Peradilan Umum",
+      "article_number": "50",
+      "domain": "judiciary",
+      "hierarchy_type": "UU",
+      "content": "Pengadilan Negeri bertugas dan berwenang memeriksa, memutus, dan menyelesaikan perkara pidana dan perkara perdata di tingkat pertama.",
+      "meta_data": {
+        "act": "UU 49/2009",
+        "source_url": "https://peraturan.go.id/id/uu-no-49-tahun-2009",
+        "transcription_status": "manual_starter_excerpt",
+        "verification_status": "not_independently_legal_reviewed"
+      }
+    },
+    {
+      "document_title": "Undang-Undang Nomor 5 Tahun 1986 tentang Peradilan Tata Usaha Negara",
+      "article_number": "47",
+      "domain": "administrative",
+      "hierarchy_type": "UU",
+      "content": "Pengadilan bertugas dan berwenang memeriksa, memutus, dan menyelesaikan sengketa Tata Usaha Negara.",
+      "meta_data": {
+        "act": "UU 5/1986",
+        "source_url": "https://peraturan.go.id/id/uu-no-5-tahun-1986",
+        "transcription_status": "manual_starter_excerpt",
+        "verification_status": "not_independently_legal_reviewed"
+      }
+    },
+    {
+      "document_title": "Undang-Undang Nomor 3 Tahun 2009 tentang Mahkamah Agung",
+      "article_number": "31A",
+      "domain": "judiciary",
+      "hierarchy_type": "UU",
+      "content": "Permohonan pengujian peraturan perundang-undangan di bawah undang-undang terhadap undang-undang diajukan langsung oleh pemohon atau kuasanya kepada Mahkamah Agung.",
+      "meta_data": {
+        "act": "UU 3/2009",
+        "source_url": "https://peraturan.go.id/id/uu-no-3-tahun-2009",
+        "transcription_status": "manual_starter_excerpt",
+        "verification_status": "not_independently_legal_reviewed"
+      }
     }
   ]
 }

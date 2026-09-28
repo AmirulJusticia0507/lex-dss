@@ -25,6 +25,7 @@ dist-ssr/
 
 # Alembic / DB dumps
 *.sql
+!backend/data/legal-seed/core-laws.sql
 alembic/versions/__pycache__/
 
 # OS / editor
