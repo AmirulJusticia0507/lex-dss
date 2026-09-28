@@ -54,6 +54,18 @@ const routes = [
     meta: { title: 'Legal Library', icon: 'Collection' },
   },
   {
+    path: '/case-law',
+    name: 'CaseLaw',
+    component: () => import('@/views/CaseLaw.vue'),
+    meta: { title: 'Case Law Search', icon: 'Collection' },
+  },
+  {
+    path: '/contract-analyzer',
+    name: 'ContractAnalyzer',
+    component: () => import('@/views/ContractAnalyzer.vue'),
+    meta: { title: 'Contract Analyzer', icon: 'Document' },
+  },
+  {
     path: '/settings',
     name: 'Settings',
     component: () => import('@/views/Settings.vue'),

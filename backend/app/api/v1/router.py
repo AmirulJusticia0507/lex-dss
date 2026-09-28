@@ -13,6 +13,8 @@ from app.api.v1.endpoints import (
     analysis,
     users,
     integration,
+    case_law,
+    contract_analyzer,
 )
 
 api_router = APIRouter()
@@ -29,6 +31,8 @@ api_router.include_router(dss.router, prefix="/dss", tags=["DSS Panel"])
 api_router.include_router(ingest.router, prefix="/ingest", tags=["Document Ingestion"])
 api_router.include_router(analysis.router, prefix="/analysis", tags=["Lex Integrity Analysis"])
 api_router.include_router(integration.router, prefix="/integration", tags=["Lex Integrity Integration"])
+api_router.include_router(case_law.router, prefix="/case-law", tags=["Case Law"])
+api_router.include_router(contract_analyzer.router, prefix="/contract-analyzer", tags=["Contract Analyzer"])
 # Alias sesuai docs/API_SPECIFICATION.md §4.4-4.5: daftar/detail konflik di bawah /analysis.
 api_router.include_router(
     norm_conflicts.router,
