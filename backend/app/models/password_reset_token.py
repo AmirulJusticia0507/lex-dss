@@ -12,6 +12,11 @@ from app.core.database import Base
 if TYPE_CHECKING:
     from app.models.user import User
 
+# Token lifetime: 1 hour
+RESET_TOKEN_EXPIRE_HOURS = 1
+
+__all__ = ["PasswordResetToken", "RESET_TOKEN_EXPIRE_HOURS"]
+
 
 class PasswordResetToken(Base):
     __tablename__ = "password_reset_tokens"

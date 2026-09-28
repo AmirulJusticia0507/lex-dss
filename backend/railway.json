@@ -5,7 +5,7 @@
     "dockerfilePath": "Dockerfile"
   },
   "deploy": {
-    "preDeployCommand": "alembic -c alembic/alembic.ini upgrade head && python scripts/seed_core_laws.py --apply",
+    "preDeployCommand": "alembic -c alembic.ini upgrade head && python scripts/seed_core_laws.py --apply",
     "startCommand": "sh -c 'uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}'",
     "healthcheckPath": "/health",
     "healthcheckTimeout": 300,
