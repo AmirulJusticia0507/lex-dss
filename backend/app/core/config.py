@@ -59,6 +59,8 @@ class Settings(BaseSettings):
     EMBEDDING_PROVIDER: str = Field(default="ollama")  # ollama, openai
     
     REDIS_URL: str = "redis://localhost:6379/0"
+    LEX_INTEGRITY_URL: str = "http://localhost:3000"
+    INTERNAL_API_KEY: Optional[str] = None
     
     class Config:
         env_file = ".env"
