@@ -8,6 +8,7 @@ import {
 import { useUIStore } from '@/stores'
 import { useAuthStore } from '@/stores'
 import { authApi } from '@/api'
+import SidebarComponent from '@/components/SidebarComponent.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -115,86 +116,11 @@ function getNotificationTypeClass(type) {
       :with-header="false"
       class="mobile-sidebar-drawer"
     >
-      <div class="sidebar">
-        <div class="logo-container">
-          <div class="logo-icon">
-            <svg width="24" height="24" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M16 4C10.48 4 6 8.48 6 14c0 2.5 0.9 4.8 2.4 6.6L16 28l7.6-7.4C25.1 18.8 26 16.5 26 14c0-5.52-4.48-10-10-10z" stroke="currentColor" stroke-width="1.8" fill="none"/>
-              <path d="M10 14h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-              <circle cx="16" cy="14" r="2" fill="currentColor"/>
-              <path d="M8 22h16M8 25h12M8 28h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.9"/>
-            </svg>
-          </div>
-          <span class="logo-text">Lex-DSS</span>
-        </div>
-
-        <nav class="nav-menu sidebar-scroll" aria-label="Main navigation">
-          <el-menu
-            :default-active="activeMenu"
-            :unique-opened="true"
-            :router="true"
-            mode="vertical"
-            @select="handleSelect"
-            class="nav-menu-el"
-          >
-            <el-menu-item v-for="item in menuItems" :key="item.path" :index="item.path">
-              <el-icon><component :is="item.icon" /></el-icon>
-              <template #title>{{ item.label }}</template>
-            </el-menu-item>
-          </el-menu>
-        </nav>
-
-        <div class="user-profile">
-          <div class="user-avatar">
-            <el-icon><User /></el-icon>
-          </div>
-          <div class="user-info">
-            <div class="user-name">{{ authStore.user?.full_name || authStore.user?.email || 'Pengguna' }}</div>
-            <div class="user-role">{{ authStore.user?.role || 'user' }}</div>
-          </div>
-        </div>
-      </div>
+      <SidebarComponent :collapsed="false" @navigate="sidebarVisible = false" />
     </el-drawer>
 
-    <el-aside v-if="!isMobile && !isLoginRoute && !isPublicInfoRoute" :width="isCollapsed ? '64px' : '280px'" class="sidebar">
-      <div class="logo-container">
-<div class="logo-icon">
-  <svg width="24" height="24" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M16 4C10.48 4 6 8.48 6 14c0 2.5 0.9 4.8 2.4 6.6L16 28l7.6-7.4C25.1 18.8 26 16.5 26 14c0-5.52-4.48-10-10-10z" stroke="currentColor" stroke-width="1.8" fill="none"/>
-    <path d="M10 14h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-    <circle cx="16" cy="14" r="2" fill="currentColor"/>
-    <path d="M8 22h16M8 25h12M8 28h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.9"/>
-  </svg>
-</div>
-        <span v-show="!isCollapsed" class="logo-text">Lex-DSS</span>
-      </div>
-
-      <nav class="nav-menu sidebar-scroll" aria-label="Main navigation">
-        <el-menu
-          :default-active="activeMenu"
-          :collapse="isCollapsed"
-          :unique-opened="true"
-          :router="true"
-          mode="vertical"
-          @select="handleSelect"
-          class="nav-menu-el"
-        >
-          <el-menu-item v-for="item in menuItems" :key="item.path" :index="item.path">
-            <el-icon><component :is="item.icon" /></el-icon>
-            <template #title>{{ item.label }}</template>
-          </el-menu-item>
-        </el-menu>
-      </nav>
-
-      <div class="user-profile">
-        <div class="user-avatar">
-          <el-icon><User /></el-icon>
-        </div>
-        <div v-show="!isCollapsed" class="user-info">
-          <div class="user-name">{{ authStore.user?.full_name || authStore.user?.email || 'Pengguna' }}</div>
-          <div class="user-role">{{ authStore.user?.role || 'user' }}</div>
-        </div>
-      </div>
+    <el-aside v-if="!isMobile && !isLoginRoute && !isPublicInfoRoute" :width="isCollapsed ? '64px' : '280px'">
+      <SidebarComponent :collapsed="isCollapsed" />
     </el-aside>
 
     <el-container class="app-body">
@@ -395,45 +321,6 @@ export default {
 .app-body {
   min-width: 0;
   min-height: 0;
-}
-
-.sidebar {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.sidebar-scroll {
-  flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
-}
-
-.nav-menu-el {
-  flex: 1;
-  border: none;
-  background: transparent;
-}
-
-.nav-menu-el .el-menu-item {
-  border-radius: 12px;
-  margin: 0 8px 6px;
-  height: auto;
-  padding: 13px 16px;
-  color: rgba(255, 255, 255, 0.8);
-}
-
-.nav-menu-el .el-menu-item:hover,
-.nav-menu-el .el-menu-item.is-active {
-  background-color: rgba(255, 255, 255, 0.1) !important;
-  color: white !important;
-}
-
-.nav-menu-el .el-menu-item.is-active {
-  background: linear-gradient(135deg, rgba(14, 165, 233, 0.2), rgba(201, 168, 76, 0.2)) !important;
-  border-left: 3px solid #c9a84c;
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,.06);
 }
 
 .sidebar-toggle {
