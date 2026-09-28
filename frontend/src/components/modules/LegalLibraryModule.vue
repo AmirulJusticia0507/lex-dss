@@ -1,10 +1,11 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
-import { ElCard, ElTable, ElTableColumn, ElInput, ElSelect, ElOption, ElButton, ElTag, ElIcon, ElTooltip, ElDropdown, ElDropdownMenu, ElDropdownItem, ElPagination, ElDialog, ElForm, ElFormItem, ElRadioGroup, ElRadio, ElDivider, ElEmpty, ElTabs, ElTabPane, ElStatistic, ElRow, ElCol, ElProgress, ElBadge, ElPopover, ElDrawer } from 'element-plus'
+import { ElCard, ElTable, ElTableColumn, ElInput, ElSelect, ElOption, ElButton, ElTag, ElIcon, ElTooltip, ElDropdown, ElDropdownMenu, ElDropdownItem, ElDialog, ElForm, ElFormItem, ElRadioGroup, ElRadio, ElDivider, ElEmpty, ElTabs, ElTabPane, ElStatistic, ElRow, ElCol, ElProgress, ElBadge, ElPopover, ElDrawer } from 'element-plus'
 import { Search, Filter, Download, Upload, Edit, Delete, View, CopyDocument, Star, More, Document, Collection, Rank, Warning, CircleCheck, ArrowRight, Setting, FullScreen } from '@element-plus/icons-vue'
 import { useLegalStore } from '@/stores'
 import { showToast } from '@/utils/alerts'
 import StatCard from '@/components/StatCard.vue'
+import CustomPagination from '@/components/CustomPagination.vue'
 
 const legalStore = useLegalStore()
 
@@ -293,16 +294,14 @@ onMounted(() => {
         </el-table-column>
       </el-table>
 
-      <el-pagination
-        v-if="total > pageSize"
-        background
-        layout="total, sizes, prev, pager, next, jumper"
-        :total="total"
-        :page-size="pageSize"
+      <CustomPagination
+        v-if="total > 0"
         :current-page="page"
+        :page-size="pageSize"
+        :total="total"
         :page-sizes="[10, 20, 50, 100]"
-        @size-change="handlePageSizeChange"
-        @current-change="handlePageChange"
+        @update:current-page="handlePageChange"
+        @update:page-size="handlePageSizeChange"
       />
     </el-card>
 
