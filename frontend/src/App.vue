@@ -24,10 +24,26 @@ onMounted(async () => {
 })
 
 const isCollapsed = ref(false)
+const isMobile = ref(false)
+const sidebarVisible = ref(false)
 const activeMenu = ref(route.path)
 const isLoginRoute = computed(() => route.name === 'Login')
 const isPublicInfoRoute = computed(() => Boolean(route.meta.infoPage))
-watch(() => route.path, path => { activeMenu.value = path })
+
+function checkMobile() {
+  isMobile.value = window.innerWidth <= 768
+  if (!isMobile.value) sidebarVisible.value = false
+}
+
+onMounted(() => {
+  checkMobile()
+  window.addEventListener('resize', checkMobile)
+})
+
+watch(() => route.path, path => {
+  activeMenu.value = path
+  if (isMobile.value) sidebarVisible.value = false
+})
 const notifications = ref([
   { id: 1, title: 'Analisis kontradiksi selesai', message: 'Ditemukan 3 kontradiksi baru pada UU No. 12/2011', time: '5 menit lalu', read: false, type: 'warning' },
   { id: 2, title: 'Legal Opinion generated', message: 'Rekomendasi AI untuk draf Perda Pajak Daerah telah siap', time: '1 jam lalu', read: false, type: 'success' },
@@ -56,8 +72,12 @@ function handleSelect(key, keyPath) {
 }
 
 function toggleSidebar() {
-  isCollapsed.value = !isCollapsed.value
-  uiStore.setSidebarCollapsed(isCollapsed.value)
+  if (isMobile.value) {
+    sidebarVisible.value = !sidebarVisible.value
+  } else {
+    isCollapsed.value = !isCollapsed.value
+    uiStore.setSidebarCollapsed(isCollapsed.value)
+  }
 }
 
 function handleLogout() {
@@ -86,7 +106,56 @@ function getNotificationTypeClass(type) {
 
 <template>
   <el-container class="app-container">
-    <el-aside v-if="!isLoginRoute && !isPublicInfoRoute" :width="isCollapsed ? '64px' : '280px'" class="sidebar">
+    <el-drawer
+      v-if="isMobile && !isLoginRoute && !isPublicInfoRoute"
+      v-model="sidebarVisible"
+      direction="ltr"
+      :size="280"
+      :with-header="false"
+      class="mobile-sidebar-drawer"
+    >
+      <div class="sidebar">
+        <div class="logo-container">
+          <div class="logo-icon">
+            <svg width="24" height="24" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M16 4C10.48 4 6 8.48 6 14c0 2.5 0.9 4.8 2.4 6.6L16 28l7.6-7.4C25.1 18.8 26 16.5 26 14c0-5.52-4.48-10-10-10z" stroke="currentColor" stroke-width="1.8" fill="none"/>
+              <path d="M10 14h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+              <circle cx="16" cy="14" r="2" fill="currentColor"/>
+              <path d="M8 22h16M8 25h12M8 28h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.9"/>
+            </svg>
+          </div>
+          <span class="logo-text">Lex-DSS</span>
+        </div>
+
+        <nav class="nav-menu sidebar-scroll" aria-label="Main navigation">
+          <el-menu
+            :default-active="activeMenu"
+            :unique-opened="true"
+            :router="true"
+            mode="vertical"
+            @select="handleSelect"
+            class="nav-menu-el"
+          >
+            <el-menu-item v-for="item in menuItems" :key="item.path" :index="item.path">
+              <el-icon><component :is="item.icon" /></el-icon>
+              <template #title>{{ item.label }}</template>
+            </el-menu-item>
+          </el-menu>
+        </nav>
+
+        <div class="user-profile">
+          <div class="user-avatar">
+            <el-icon><User /></el-icon>
+          </div>
+          <div class="user-info">
+            <div class="user-name">{{ authStore.user?.full_name || authStore.user?.email || 'Pengguna' }}</div>
+            <div class="user-role">{{ authStore.user?.role || 'user' }}</div>
+          </div>
+        </div>
+      </div>
+    </el-drawer>
+
+    <el-aside v-if="!isMobile && !isLoginRoute && !isPublicInfoRoute" :width="isCollapsed ? '64px' : '280px'" class="sidebar">
       <div class="logo-container">
 <div class="logo-icon">
   <svg width="24" height="24" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -131,7 +200,16 @@ function getNotificationTypeClass(type) {
       <el-header v-if="!isLoginRoute && !isPublicInfoRoute" class="header">
         <div class="header-left">
           <el-button
-            v-if="!isCollapsed"
+            v-if="isMobile"
+            class="sidebar-toggle"
+            @click="toggleSidebar"
+            circle
+            size="small"
+          >
+            <el-icon><Fold /></el-icon>
+          </el-button>
+          <el-button
+            v-else-if="!isCollapsed"
             class="sidebar-toggle"
             @click="toggleSidebar"
             circle
@@ -283,19 +361,23 @@ export default {
   overflow: hidden;
 }
 
+.mobile-sidebar-drawer .el-drawer__body {
+  padding: 0 !important;
+}
+
+.mobile-sidebar-drawer .sidebar {
+  width: 100% !important;
+  background: linear-gradient(180deg, #1e3a5f 0%, #0f2744 100%);
+}
+
 @media (max-width: 768px) {
   .app-container { height: 100dvh; }
-  .sidebar { width: 68px !important; }
-  .logo-text, .user-info, .nav-menu-el .el-menu-item span { display: none !important; }
-  .logo-container { justify-content: center; padding: 14px 8px; }
-  .nav-menu { padding: 14px 4px; }
-  .nav-menu-el .el-menu-item { justify-content: center; margin-inline: 4px; padding-inline: 0 !important; }
-  .user-profile { justify-content: center; padding: 12px 8px; }
   .header { height: 64px; padding: 0 14px; }
   .header-actions { gap: 8px; }
   .search-box { display: none; }
   .page-title-header { font-size: 16px; }
   .main-content { padding: 16px !important; }
+  .page-crumb { display: none; }
 }
 
 @media (max-width: 480px) {

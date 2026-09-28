@@ -207,7 +207,7 @@ onMounted(() => {
       </el-tooltip>
     </div>
 
-    <el-row :gutter="20" class="stats-row">
+    <el-row :gutter="20" class="stats-row" justify="space-between">
       <el-col :xs="24" :sm="12" :lg="6">
         <el-tooltip
           placement="top"
@@ -442,6 +442,41 @@ onMounted(() => {
 
 .stats-row {
   margin-bottom: 0 !important;
+}
+
+.stats-row :deep(.el-card) {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+@media (max-width: 768px) {
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .stats-row .el-col {
+    min-width: 0;
+  }
+
+  .stats-row :deep(.stat-card),
+  .stats-row :deep(.stat-card > div) {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .stats-row {
+    grid-template-columns: 1fr;
+  }
+
+  .risk-distribution {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+  }
 }
 
 .refresh-btn {
