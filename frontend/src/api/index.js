@@ -61,6 +61,7 @@ export const authApi = {
   resetPreferences: () => api.delete('/auth/preferences'),
   deletePreference: (key) => api.delete(`/auth/preferences/${encodeURIComponent(key)}`),
   refreshToken: () => api.post('/auth/refresh'),
+  getCaptchaChallenge: () => api.get('/auth/captcha/challenge'),
 }
 
 export const usersApi = {
