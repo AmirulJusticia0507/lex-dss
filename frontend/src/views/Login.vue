@@ -131,6 +131,11 @@ loadCaptcha()
           {{ isRegister ? 'Sudah punya akun?' : 'Belum punya akun?' }}
           <button class="font-semibold text-sky-700 hover:text-sky-900" type="button" @click="isRegister = !isRegister; loadCaptcha()">{{ isRegister ? 'Masuk' : 'Daftar sebagai pengguna' }}</button>
         </p>
+        <nav class="mt-6 flex flex-wrap justify-center gap-x-4 gap-y-2 border-t border-slate-100 pt-5 text-xs" aria-label="Informasi">
+          <router-link class="text-slate-500 hover:text-sky-700" to="/tentang">Tentang</router-link>
+          <router-link class="text-slate-500 hover:text-sky-700" to="/privasi-cookies">Privasi &amp; Cookies</router-link>
+          <router-link class="text-slate-500 hover:text-sky-700" to="/bantuan">Bantuan</router-link>
+        </nav>
       </section>
     </div>
   </div>

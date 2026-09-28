@@ -3,7 +3,7 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMenu, ElMenuItem, ElSubMenu, ElIcon, ElAvatar, ElDropdown, ElDropdownMenu, ElDropdownItem, ElTooltip } from 'element-plus'
 import {
-  Monitor, Warning, DataAnalysis, Collection, Setting, User, Lock, SwitchButton, Moon, Sunny, Bell, Message, ArrowRight, FullScreen, Fold, Expand, DataBoard, Document, Cpu, TrendCharts
+  Monitor, Warning, DataAnalysis, Collection, Setting, User, Lock, SwitchButton, Moon, Sunny, Bell, Message, ArrowRight, FullScreen, Fold, Expand, DataBoard, Document, Cpu, TrendCharts, InfoFilled, QuestionFilled
 } from '@element-plus/icons-vue'
 import { useUIStore } from '@/stores'
 import { useAuthStore } from '@/stores'
@@ -26,6 +26,7 @@ onMounted(async () => {
 const isCollapsed = ref(false)
 const activeMenu = ref(route.path)
 const isLoginRoute = computed(() => route.name === 'Login')
+const isPublicInfoRoute = computed(() => Boolean(route.meta.infoPage))
 watch(() => route.path, path => { activeMenu.value = path })
 const notifications = ref([
   { id: 1, title: 'Analisis kontradiksi selesai', message: 'Ditemukan 3 kontradiksi baru pada UU No. 12/2011', time: '5 menit lalu', read: false, type: 'warning' },
@@ -85,7 +86,7 @@ function getNotificationTypeClass(type) {
 
 <template>
   <el-container class="app-container">
-    <el-aside v-if="!isLoginRoute" :width="isCollapsed ? '64px' : '280px'" class="sidebar">
+    <el-aside v-if="!isLoginRoute && !isPublicInfoRoute" :width="isCollapsed ? '64px' : '280px'" class="sidebar">
       <div class="logo-container">
 <div class="logo-icon">
   <svg width="24" height="24" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -127,7 +128,7 @@ function getNotificationTypeClass(type) {
     </el-aside>
 
     <el-container class="app-body">
-      <el-header v-if="!isLoginRoute" class="header">
+      <el-header v-if="!isLoginRoute && !isPublicInfoRoute" class="header">
         <div class="header-left">
           <el-button
             v-if="!isCollapsed"
@@ -214,6 +215,18 @@ function getNotificationTypeClass(type) {
                 <el-dropdown-item @click="router.push('/profile#security')">
                   <el-icon><Lock /></el-icon>
                   <span>Keamanan</span>
+                </el-dropdown-item>
+                <el-dropdown-item @click="router.push('/tentang')">
+                  <el-icon><InfoFilled /></el-icon>
+                  <span>Tentang</span>
+                </el-dropdown-item>
+                <el-dropdown-item @click="router.push('/privasi-cookies')">
+                  <el-icon><Document /></el-icon>
+                  <span>Privasi &amp; Cookies</span>
+                </el-dropdown-item>
+                <el-dropdown-item @click="router.push('/bantuan')">
+                  <el-icon><QuestionFilled /></el-icon>
+                  <span>Bantuan</span>
                 </el-dropdown-item>
                 <el-dropdown-item divided>
                   <el-icon><SwitchButton /></el-icon>

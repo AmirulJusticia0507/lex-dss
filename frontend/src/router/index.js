@@ -8,6 +8,24 @@ const routes = [
     meta: { title: 'Masuk', public: true },
   },
   {
+    path: '/tentang',
+    name: 'About',
+    component: () => import('@/views/Information.vue'),
+    meta: { title: 'Tentang', public: true, infoPage: 'about' },
+  },
+  {
+    path: '/privasi-cookies',
+    name: 'Privacy',
+    component: () => import('@/views/Information.vue'),
+    meta: { title: 'Privasi & Cookies', public: true, infoPage: 'privacy' },
+  },
+  {
+    path: '/bantuan',
+    name: 'Help',
+    component: () => import('@/views/Information.vue'),
+    meta: { title: 'Bantuan', public: true, infoPage: 'help' },
+  },
+  {
     path: '/',
     redirect: '/dashboard',
   },
