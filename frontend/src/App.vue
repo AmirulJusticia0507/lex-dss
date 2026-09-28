@@ -484,7 +484,7 @@ export default {
 .main-content {
   flex: 1;
   overflow-y: auto;
-  background: #f4f7fb;
+  background: var(--bg-primary);
 }
 
 .main-content.standalone-main {

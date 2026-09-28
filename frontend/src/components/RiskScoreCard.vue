@@ -264,9 +264,9 @@ export default {
 
 <style scoped>
 .risk-score-card {
-  background: white;
+  background: var(--bg-tertiary);
   border-radius: 12px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border-light);
   padding: 24px;
   transition: all 0.2s ease;
 }
@@ -285,7 +285,7 @@ export default {
 .card-title {
   font-size: 16px;
   font-weight: 600;
-  color: #1e3a5f;
+  color: var(--legal-dark);
   margin-bottom: 4px;
 }
 
@@ -371,7 +371,7 @@ export default {
   align-items: flex-start;
   gap: 12px;
   padding: 12px;
-  background: #f9fafb;
+  background: var(--bg-secondary);
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -399,13 +399,13 @@ export default {
 .factor-title {
   font-size: 13px;
   font-weight: 500;
-  color: #1f2937;
+  color: var(--text-primary);
   margin-bottom: 2px;
 }
 
 .factor-desc {
   font-size: 12px;
-  color: #6b7280;
+  color: var(--text-secondary);
   line-height: 1.5;
 }
 
@@ -443,7 +443,7 @@ export default {
 
 .mitigation-text {
   font-size: 13px;
-  color: #1f2937;
+  color: var(--text-primary);
   line-height: 1.5;
   flex: 1;
 }

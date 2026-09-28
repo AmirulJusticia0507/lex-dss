@@ -1,12 +1,14 @@
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { ElCard, ElForm, ElFormItem, ElInput, ElSelect, ElOption, ElButton, ElSwitch, ElRadioGroup, ElRadio, ElDivider, ElTabs, ElTabPane, ElTag, ElIcon, ElAlert, ElDescriptions, ElDescriptionsItem, ElSlider, ElColorPicker, ElTimePicker, ElDatePicker, ElUpload, ElDrawer } from 'element-plus'
 import { Setting, User, Lock, Bell, Moon, Sunny, Monitor, Brush, Coordinate, Box, Cloudy, Cpu, Key, Download, Upload as UploadIcon, Delete, Refresh, CircleCheck, Warning } from '@element-plus/icons-vue'
 import { confirmAction, showToast } from '@/utils/alerts'
 import { authApi } from '@/api'
+import { useUIStore } from '@/stores'
 
 const activeTab = ref('general')
 const saving = ref(false)
+const uiStore = useUIStore()
 
 const settings = reactive({
   general: {
@@ -15,7 +17,7 @@ const settings = reactive({
     language: 'id',
     timezone: 'Asia/Jakarta',
     dateFormat: 'DD/MM/YYYY',
-    theme: 'light',
+    theme: uiStore.theme,
     sidebarCollapsed: false,
     compactMode: false,
     animationsEnabled: true,
@@ -23,7 +25,7 @@ const settings = reactive({
   appearance: {
     primaryColor: '#0ea5e9',
     secondaryColor: '#c9a84c',
-    darkMode: false,
+    darkMode: uiStore.theme === 'dark',
     fontSize: 'medium',
     borderRadius: 'medium',
     density: 'comfortable',
@@ -80,6 +82,19 @@ const settings = reactive({
     betaFeatures: false,
     exportFormat: 'markdown',
   },
+})
+
+watch(() => settings.general.theme, (theme) => {
+  const resolvedTheme = theme === 'auto'
+    ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+    : theme
+  settings.appearance.darkMode = resolvedTheme === 'dark'
+  uiStore.setTheme(resolvedTheme)
+})
+
+watch(() => settings.appearance.darkMode, (enabled) => {
+  const theme = enabled ? 'dark' : 'light'
+  if (settings.general.theme !== theme) settings.general.theme = theme
 })
 
 const languages = [

@@ -1004,6 +1004,91 @@ body {
   box-shadow: 0 12px 32px rgba(15, 23, 42, 0.14);
 }
 
+/* Dark theme bridge for Element Plus, Tailwind surfaces, menus, and cards. */
+.dark {
+  color-scheme: dark;
+  --el-bg-color: var(--bg-tertiary);
+  --el-bg-color-overlay: var(--bg-secondary);
+  --el-fill-color-blank: var(--bg-tertiary);
+  --el-fill-color-light: var(--bg-secondary);
+  --el-fill-color-lighter: var(--bg-primary);
+  --el-fill-color-extra-light: var(--bg-primary);
+  --el-text-color-primary: var(--text-primary);
+  --el-text-color-regular: var(--text-secondary);
+  --el-text-color-secondary: var(--text-tertiary);
+  --el-border-color: var(--border-medium);
+  --el-border-color-light: var(--border-light);
+  --el-border-color-lighter: var(--border-light);
+}
+
+.dark .el-header,
+.dark .el-card,
+.dark .card,
+.dark .stat-card,
+.dark .panel-section,
+.dark .reference-item,
+.dark .risk-score-card,
+.dark .bg-white,
+.dark .page-header,
+.dark .login-panel,
+.dark .login-shell,
+.dark footer {
+  color: var(--text-primary);
+  background: var(--bg-tertiary) !important;
+  border-color: var(--border-light) !important;
+}
+
+.dark .border-slate-200,
+.dark .border-slate-200\/80 {
+  border-color: var(--border-light) !important;
+}
+
+.dark .text-slate-900,
+.dark .text-slate-800,
+.dark .text-slate-700,
+.dark .text-slate-600 {
+  color: var(--text-primary) !important;
+}
+
+.dark .text-slate-500,
+.dark .text-slate-400 {
+  color: var(--text-secondary) !important;
+}
+
+.dark .page-loading,
+.dark .loading-overlay {
+  background: color-mix(in srgb, var(--bg-primary) 90%, transparent) !important;
+}
+
+.dark .factor-item,
+.dark .document-item,
+.dark .draft-textarea .el-textarea__inner {
+  color: var(--text-primary);
+  background: var(--bg-secondary) !important;
+  border-color: var(--border-light) !important;
+}
+
+.dark .mitigation-item {
+  background: var(--stat-success-soft) !important;
+  border-color: var(--success-color) !important;
+}
+
+.dark .card-title,
+.dark .detail-title,
+.dark .factor-title,
+.dark .mitigation-text,
+.dark .username,
+.dark .notification-header,
+.dark .notif-title {
+  color: var(--text-primary) !important;
+}
+
+.dark .notification-btn,
+.dark .sidebar-toggle,
+.dark .details-toggle {
+  color: var(--text-secondary);
+}
+
 @media (max-width: 768px) {
   .page-header {
     padding: 18px !important;
