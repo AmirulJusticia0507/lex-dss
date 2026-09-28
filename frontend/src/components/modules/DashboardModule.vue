@@ -199,55 +199,81 @@ onMounted(() => {
         <h1 class="page-title">Dashboard</h1>
         <p class="page-subtitle">Ringkasan analisis kontradiksi norma hukum dan risiko legal</p>
       </div>
-      <el-button type="primary" @click="fetchDashboardData" :loading="loading" class="refresh-btn">
-        <el-icon><TrendCharts /></el-icon>
-        Refresh Data
-      </el-button>
+      <el-tooltip placement="left" :show-after="300" content="Muat ulang data dashboard">
+        <el-button type="primary" @click="fetchDashboardData" :loading="loading" class="refresh-btn">
+          <el-icon><TrendCharts /></el-icon>
+          Refresh Data
+        </el-button>
+      </el-tooltip>
     </div>
 
     <el-row :gutter="20" class="stats-row">
       <el-col :xs="24" :sm="12" :lg="6">
-        <StatCard
-          label="Total Kontradiksi"
-          :value="stats.totalConflicts"
-          :icon="Warning"
-          accent="info"
-          trend="+3 dari minggu lalu"
-          trend-direction="up"
-        />
+        <el-tooltip
+          placement="top"
+          :show-after="300"
+          :content="'Total kasus kontradiksi norma hukum yang terdeteksi oleh engine Lex Integrity'"
+        >
+          <StatCard
+            label="Total Kontradiksi"
+            :value="stats.totalConflicts"
+            :icon="Warning"
+            accent="info"
+            trend="+3 dari minggu lalu"
+            trend-direction="up"
+          />
+        </el-tooltip>
       </el-col>
 
       <el-col :xs="24" :sm="12" :lg="6">
-        <StatCard
-          label="Risiko Tinggi"
-          :value="stats.highRisk"
-          :icon="Warning"
-          accent="danger"
-          trend="Perlu perhatian segera"
-          trend-direction="down"
-        />
+        <el-tooltip
+          placement="top"
+          :show-after="300"
+          :content="'Kontradiksi dengan severity HIGH memerlukan review segera'"
+        >
+          <StatCard
+            label="Risiko Tinggi"
+            :value="stats.highRisk"
+            :icon="Warning"
+            accent="danger"
+            trend="Perlu perhatian segera"
+            trend-direction="down"
+          />
+        </el-tooltip>
       </el-col>
 
       <el-col :xs="24" :sm="12" :lg="6">
-        <StatCard
-          label="Artikel Hukum"
-          :value="stats.totalArticles"
-          :icon="Document"
-          accent="primary"
-          trend="+15 artikel baru"
-          trend-direction="up"
-        />
+        <el-tooltip
+          placement="top"
+          :show-after="300"
+          :content="'Jumlah pasal/artikel hukum yang sudah di-load ke basis data'"
+        >
+          <StatCard
+            label="Artikel Hukum"
+            :value="stats.totalArticles"
+            :icon="Document"
+            accent="primary"
+            trend="+15 artikel baru"
+            trend-direction="up"
+          />
+        </el-tooltip>
       </el-col>
 
       <el-col :xs="24" :sm="12" :lg="6">
-        <StatCard
-          label="Dokumen Dianalisis"
-          :value="stats.analyzedDocuments"
-          :icon="DataAnalysis"
-          accent="gold"
-          trend="+2 dokumen hari ini"
-          trend-direction="up"
-        />
+        <el-tooltip
+          placement="top"
+          :show-after="300"
+          :content="'Jumlah dokumen peraturan yang sudah dianalisis'"
+        >
+          <StatCard
+            label="Dokumen Dianalisis"
+            :value="stats.analyzedDocuments"
+            :icon="DataAnalysis"
+            accent="gold"
+            trend="+2 dokumen hari ini"
+            trend-direction="up"
+          />
+        </el-tooltip>
       </el-col>
     </el-row>
 
@@ -257,10 +283,12 @@ onMounted(() => {
           <template #header>
             <div class="card-header">
               <span class="card-title">Matriks Kontradiksi Norma</span>
-              <el-button size="small" type="primary" @click="$router.push('/conflict-checker')">
-                <el-icon><Warning /></el-icon>
-                Analisis Baru
-              </el-button>
+              <el-tooltip placement="top" :show-after="300" content="Buka Conflict Checker untuk analisis baru">
+                <el-button size="small" type="primary" @click="$router.push('/conflict-checker')">
+                  <el-icon><Warning /></el-icon>
+                  Analisis Baru
+                </el-button>
+              </el-tooltip>
             </div>
           </template>
           <ConflictMatrix
@@ -277,6 +305,9 @@ onMounted(() => {
           <template #header>
             <div class="card-header">
               <span class="card-title">Risk Score Overview</span>
+              <el-tooltip placement="top" :show-after="300" content="Skor risiko gabungan dari semua kontradiksi">
+                <el-icon class="info-icon"><DataAnalysis /></el-icon>
+              </el-tooltip>
             </div>
           </template>
           <RiskScoreCard
@@ -294,19 +325,27 @@ onMounted(() => {
             <span class="card-title">Distribusi Risiko</span>
           </template>
           <div class="risk-distribution">
-            <div v-for="item in riskDistribution" :key="item.name" class="risk-dist-item">
-              <div class="risk-dist-head">
-                <span class="risk-dot" :style="{ backgroundColor: item.color }"></span>
-                <span class="risk-name">{{ item.name }}</span>
-                <span class="risk-count">{{ item.value }}</span>
+            <el-tooltip
+              v-for="item in riskDistribution"
+              :key="item.name"
+              placement="top"
+              :show-after="300"
+              :content="`Jumlah kontradiksi dengan risiko ${item.name.toLowerCase()}`"
+            >
+              <div class="risk-dist-item">
+                <div class="risk-dist-head">
+                  <span class="risk-dot" :style="{ backgroundColor: item.color }"></span>
+                  <span class="risk-name">{{ item.name }}</span>
+                  <span class="risk-count">{{ item.value }}</span>
+                </div>
+                <el-progress
+                  :percentage="stats.totalConflicts > 0 ? Math.round((item.value / stats.totalConflicts) * 100) : 0"
+                  :stroke-width="8"
+                  :color="item.color"
+                  :show-text="false"
+                />
               </div>
-              <el-progress
-                :percentage="stats.totalConflicts > 0 ? Math.round((item.value / stats.totalConflicts) * 100) : 0"
-                :stroke-width="8"
-                :color="item.color"
-                :show-text="false"
-              />
-            </div>
+            </el-tooltip>
           </div>
         </el-card>
       </el-col>
@@ -316,10 +355,12 @@ onMounted(() => {
       <el-col :xs="24">
         <el-card class="card">
           <template #header>
-            <div class="card-header">
-              <span class="card-title">Kontradiksi Terbaru</span>
-              <el-button size="small" link @click="$router.push('/conflict-checker')">Lihat Semua</el-button>
-            </div>
+<div class="card-header">
+               <span class="card-title">Kontradiksi Terbaru</span>
+               <el-tooltip placement="top" :show-after="300" content="Lihat semua kontradiksi di Conflict Checker">
+                 <el-button size="small" link @click="$router.push('/conflict-checker')">Lihat Semua</el-button>
+               </el-tooltip>
+             </div>
           </template>
           <el-table
             v-loading="loading"
@@ -330,38 +371,54 @@ onMounted(() => {
             :row-style="{ cursor: 'pointer' }"
             @row-click="handleRowClick"
           >
-            <el-table-column prop="conflict_type" label="Jenis Kontradiksi" width="180">
-              <template #default="scope">
-                <span :class="getConflictTypeClass(scope.row.conflict_type)">{{ getConflictTypeLabel(scope.row.conflict_type) }}</span>
-              </template>
-            </el-table-column>
-            <el-table-column prop="severity" label="Severity" width="120">
-              <template #default="scope">
-                <el-tag :type="getSeverityType(scope.row.severity)" effect="plain">{{ scope.row.severity }}</el-tag>
-              </template>
-            </el-table-column>
-            <el-table-column label="Pasal Sumber" width="200">
-              <template #default="scope">
-                <div>
-                  <div style="font-weight: 500;">{{ scope.row.source_article?.document_title }}</div>
-                  <div style="font-size: 12px; color: #9ca3af;">{{ scope.row.source_article?.article_number }}</div>
-                </div>
-              </template>
-            </el-table-column>
-            <el-table-column label="Pasal Target" width="200">
-              <template #default="scope">
-                <div>
-                  <div style="font-weight: 500;">{{ scope.row.target_article?.document_title }}</div>
-                  <div style="font-size: 12px; color: #9ca3af;">{{ scope.row.target_article?.article_number }}</div>
-                </div>
-              </template>
-            </el-table-column>
-            <el-table-column prop="description" label="Deskripsi" min-width="250" show-overflow-tooltip />
-            <el-table-column prop="created_at" label="Waktu Deteksi" width="180">
-              <template #default="scope">
-                {{ formatDate(scope.row.created_at) }}
-              </template>
-            </el-table-column>
+<el-table-column prop="conflict_type" label="Jenis Kontradiksi" width="180">
+               <template #default="scope">
+                 <el-tooltip placement="top" :show-after="300" :content="scope.row.description">
+                   <span :class="getConflictTypeClass(scope.row.conflict_type)">{{ getConflictTypeLabel(scope.row.conflict_type) }}</span>
+                 </el-tooltip>
+               </template>
+             </el-table-column>
+             <el-table-column prop="severity" label="Severity" width="120">
+               <template #default="scope">
+                 <el-tooltip placement="top" :show-after="300" :content="scope.row.severity === 'HIGH' ? 'Kontradiksi dengan risiko tinggi' : scope.row.severity === 'MEDIUM' ? 'Kontradiksi dengan risiko sedang' : 'Kontradiksi dengan risiko rendah'">
+                   <el-tag :type="getSeverityType(scope.row.severity)" effect="plain">{{ scope.row.severity }}</el-tag>
+                 </el-tooltip>
+               </template>
+             </el-table-column>
+<el-table-column label="Pasal Sumber" width="200">
+               <template #default="scope">
+                 <el-tooltip placement="top" :show-after="300" :content="scope.row.source_article?.document_title">
+                   <div>
+                     <div style="font-weight: 500;">{{ scope.row.source_article?.document_title }}</div>
+                     <div style="font-size: 12px; color: #9ca3af;">{{ scope.row.source_article?.article_number }}</div>
+                   </div>
+                 </el-tooltip>
+               </template>
+             </el-table-column>
+             <el-table-column label="Pasal Target" width="200">
+               <template #default="scope">
+                 <el-tooltip placement="top" :show-after="300" :content="scope.row.target_article?.document_title">
+                   <div>
+                     <div style="font-weight: 500;">{{ scope.row.target_article?.document_title }}</div>
+                     <div style="font-size: 12px; color: #9ca3af;">{{ scope.row.target_article?.article_number }}</div>
+                   </div>
+                 </el-tooltip>
+               </template>
+             </el-table-column>
+<el-table-column prop="description" label="Deskripsi" min-width="250">
+               <template #default="scope">
+                 <el-tooltip placement="top" :show-after="300" :content="scope.row.description">
+                   <span>{{ scope.row.description }}</span>
+                 </el-tooltip>
+               </template>
+             </el-table-column>
+             <el-table-column prop="created_at" label="Waktu Deteksi" width="180">
+               <template #default="scope">
+                 <el-tooltip placement="top" :show-after="300" :content="formatDate(scope.row.created_at)">
+                   <span>{{ formatDate(scope.row.created_at) }}</span>
+                 </el-tooltip>
+               </template>
+             </el-table-column>
           </el-table>
           <div v-if="recentConflicts.length === 0" class="empty-state">
             <el-empty description="Belum ada data kontradiksi" image="https://fuss10.elemecdn.com/e/bf/352815f91f3b80189f0a48140c2efpng.png">
@@ -437,6 +494,13 @@ onMounted(() => {
 }
 
 .section-gap {
-  margin-top: 20px;
-}
+    margin-top: 20px;
+  }
+
+  .info-icon {
+    margin-left: 6px;
+    color: #9ca3af;
+    cursor: help;
+    vertical-align: middle;
+  }
 </style>
