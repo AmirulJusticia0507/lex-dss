@@ -18,7 +18,7 @@ from app.core.security import (
 )
 from app.models.user import User
 from app.models.password_reset_token import PasswordResetToken, RESET_TOKEN_EXPIRE_HOURS
-from app.services.captcha import verify_recaptcha
+from app.services.captcha import verify_captcha, generate_math_challenge
 
 router = APIRouter()
 
@@ -92,13 +92,13 @@ async def register(
     request: Request,
     db: AsyncSession = Depends(get_db),
 ):
-    # reCAPTCHA verification
+    # CAPTCHA verification
     client_ip = request.client.host if request.client else None
-    ok, score, msg = await verify_recaptcha(user_in.recaptcha_token or "", remote_ip=client_ip)
+    ok, score, msg = await verify_captcha(user_in.recaptcha_token or "", remote_ip=client_ip)
     if not ok:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"reCAPTCHA verification failed: {msg}",
+            detail=f"CAPTCHA verification failed: {msg}",
         )
 
     result = await db.execute(select(User).where(User.email == user_in.email))
@@ -128,13 +128,13 @@ async def login(
     request: Request,
     db: AsyncSession = Depends(get_db),
 ):
-    # reCAPTCHA verification
+    # CAPTCHA verification
     client_ip = request.client.host if request.client else None
-    ok, score, msg = await verify_recaptcha(user_in.recaptcha_token or "", remote_ip=client_ip)
+    ok, score, msg = await verify_captcha(user_in.recaptcha_token or "", remote_ip=client_ip)
     if not ok:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"reCAPTCHA verification failed: {msg}",
+            detail=f"CAPTCHA verification failed: {msg}",
         )
 
     result = await db.execute(select(User).where(User.email == user_in.email))
@@ -247,13 +247,13 @@ async def forgot_password(
     db: AsyncSession = Depends(get_db),
 ):
     """Generate a password reset token. Always returns success to avoid email enumeration."""
-    # reCAPTCHA verification
+    # CAPTCHA verification
     client_ip = http_request.client.host if http_request.client else None
-    ok, score, msg = await verify_recaptcha(request.recaptcha_token or "", remote_ip=client_ip)
+    ok, score, msg = await verify_captcha(request.recaptcha_token or "", remote_ip=client_ip)
     if not ok:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"reCAPTCHA verification failed: {msg}",
+            detail=f"CAPTCHA verification failed: {msg}",
         )
 
     result = await db.execute(select(User).where(User.email == request.email))
@@ -280,13 +280,13 @@ async def reset_password(
     db: AsyncSession = Depends(get_db),
 ):
     """Reset password using a valid token."""
-    # reCAPTCHA verification
+    # CAPTCHA verification
     client_ip = http_request.client.host if http_request.client else None
-    ok, score, msg = await verify_recaptcha(request.recaptcha_token or "", remote_ip=client_ip)
+    ok, score, msg = await verify_captcha(request.recaptcha_token or "", remote_ip=client_ip)
     if not ok:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"reCAPTCHA verification failed: {msg}",
+            detail=f"CAPTCHA verification failed: {msg}",
         )
 
     result = await db.execute(
@@ -308,6 +308,17 @@ async def reset_password(
     reset_token.used = True
     await db.commit()
     return {"message": "Password reset successfully"}
+
+
+@router.get("/captcha/challenge")
+async def get_captcha_challenge():
+    """Generate a self-hosted math captcha challenge.
+
+    Returns {challenge_id, question}.
+    Frontend tampilkan question, user jawab, kirim "challenge_id:answer" sebagai recaptcha_token.
+    """
+    challenge_id, question = generate_math_challenge()
+    return {"challenge_id": challenge_id, "question": question, "provider": "math"}
 
 
 @router.get("/preferences")

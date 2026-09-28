@@ -62,10 +62,16 @@ class Settings(BaseSettings):
     LEX_INTEGRITY_URL: str = "http://localhost:3000"
     INTERNAL_API_KEY: Optional[str] = None
     
-    # reCAPTCHA
-    RECAPTCHA_SECRET: Optional[str] = None
-    RECAPTCHA_ENABLED: bool = False  # Set true di production
-    RECAPTCHA_THRESHOLD: float = 0.5  # reCAPTCHA v3 score threshold
+    # CAPTCHA Configuration (multi-provider: hcaptcha, math, none)
+    # hCaptcha (privacy-focused, drop-in replacement for reCAPTCHA)
+    # Dapat diakses di https://hcaptcha.com/
+    HCAPTCHA_SECRET_KEY: Optional[str] = None
+    HCAPTCHA_SITE_KEY: Optional[str] = None
+
+    # CAPTCHA Provider: "hcaptcha" | "math" | "none"
+    CAPTCHA_PROVIDER: str = "none"  # Set "hcaptcha" or "math" di production
+    CAPTCHA_ENABLED: bool = False
+    CAPTCHA_THRESHOLD: float = 0.5  # Score threshold (hCaptcha)
     
     @property
     def database_url(self) -> str:
