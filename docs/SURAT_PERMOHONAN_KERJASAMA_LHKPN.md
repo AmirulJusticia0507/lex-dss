@@ -1,10 +1,10 @@
-# Surat Permohonan Kerjasama Akses Data LHKPN
+# Surat Permohonan Konsultasi Mekanisme Akses Informasi LHKPN
 
 ---
 
 **Nomor**: [NOMOR SURAT]
-**Lampiran**: 1 (satu) berkas
-**Hal**: Permohonan Kerjasama Akses Data LHKPN untuk Keperluan Riset dan Pengembangan Sistem Pendukung Keputusan Hukum
+**Lampiran**: 4 (empat) berkas
+**Hal**: Permohonan Konsultasi dan Arahan Mekanisme Akses Informasi LHKPN untuk Pilot Riset dan Pengembangan Sistem
 
 ---
 
@@ -19,74 +19,79 @@ Jakarta Selatan 12950
 
 Dengan hormat,
 
-Kami dari **Lex-DSS (Lex Decision Support System)**, sebuah inisiatif pengembangan sistem pendukung keputusan hukum berbasis kecerdasan buatan, bermaksud mengajukan permohonan kerjasama akses data Laporan Harta Kekayaan Penyelenggara Negara (LHKPN) untuk keperluan riset dan pengembangan.
+Saya, **Amirul Putra Justicia**, pelaku usaha perseorangan yang tercatat dengan Nomor Induk Berusaha (NIB) **0612220049872**, merupakan pengembang **Lex-DSS (Lex Decision Support System)**, sebuah prototipe sistem pendukung analisis hukum berbasis kecerdasan buatan.
 
-**1. Latar Belakang**
+Melalui surat ini, saya memohon konsultasi dan arahan tertulis dari KPK mengenai mekanisme yang sesuai apabila Lex-DSS melakukan pilot riset menggunakan informasi Laporan Harta Kekayaan Penyelenggara Negara (LHKPN) yang telah diumumkan kepada publik.
 
-Lex-DSS adalah sistem AI yang dirancang untuk menganalisis konflik norma hukum, mendeteksi penyimpangan putusan pengadilan, dan memberikan rekomendasi hukum berbasis data. Salah satu komponen penting dalam sistem ini adalah kemampuan menganalisis indikasi penyalahgunaan wewenang oleh penyelenggara negara, yang memerlukan data kekayaan sebagai salah satu variabel analisis.
+Permohonan ini **bukan** permohonan aktivasi tautan e-Announcement bagi instansi, **bukan** permohonan akun e-LHKPN, dan **bukan** permohonan akses data massal. Saya akan mengikuti ketentuan, ruang lingkup, serta mekanisme yang ditetapkan KPK.
 
-**2. Maksud dan Tujuan**
+## 1. Latar Belakang
 
-- Mengembangkan algoritma deteksi anomali kekayaan penyelenggara negara
-- Mengintegrasikan data LHKPN sebagai fitur dalam analisis risiko korupsi
-- Membangun dashboard monitoring kepatuhan pelaporan LHKPN
-- Menghasilkan output analisis yang dapat mendukung upaya pencegahan korupsi
+Lex-DSS dikembangkan untuk membantu penelusuran konflik norma hukum dan analisis risiko berbasis data. Dalam tahap pilot, informasi LHKPN yang sah dan tersedia sesuai ketentuan dapat digunakan untuk menguji metode analisis perubahan nilai harta secara terbatas.
 
-**3. Data yang Dimohon**
+Setiap hasil sistem hanya berupa indikator untuk evaluasi manusia. Hasil tersebut tidak digunakan untuk menetapkan pelanggaran, menyimpulkan tindak pidana, atau mempublikasikan tuduhan terhadap individu.
 
-| No | Jenis Data | Format | Volume |
-|----|-----------|--------|--------|
-| 1 | Data publik e-Announcement (nama, jabatan, unit kerja, tanggal lapor, total harta kekayaan) | JSON/CSV | ~500-1000 record untuk pilot |
-| 2 | Riwayat pelaporan per individu (temporal) | JSON/CSV | ~100-200 record |
-| 3 | Data agregat kepatuhan per instansi | JSON/CSV | ~50-100 record |
+## 2. Maksud dan Tujuan
 
-**4. Rencana Penggunaan Data**
+- Memperoleh arahan tertulis mengenai mekanisme yang sah untuk pilot riset Lex-DSS.
+- Memastikan penggunaan informasi LHKPN sesuai kebijakan KPK dan ketentuan pelindungan data pribadi.
+- Menguji analisis data secara terbatas, terukur, dan dengan pengawasan manusia.
+- Menyusun rekomendasi teknis terkait keamanan data dan tata kelola penggunaan informasi publik.
 
-- Data **hanya** digunakan untuk keperluan riset dan pengembangan sistem
-- Tidak akan dipublikasikan dalam bentuk yang mengidentifikasi individu
-- Hasil analisis akan diagregasi dan anonimisasi
-- Data akan disimpan dengan enkripsi dan akses terbatas
-- Seluruh aktivitas pengunduhan data akan dicatat dalam log audit
+## 3. Ruang Lingkup Pilot yang Diusulkan
 
-**5. Keamanan Data**
+Pada tahap awal, saya mengusulkan penggunaan data agregat atau data yang telah dianonimkan. Apabila KPK memperbolehkan penggunaan informasi pengumuman publik secara terbatas, ruang lingkup berikut hanya dilakukan berdasarkan persetujuan atau arahan tertulis KPK:
 
-- Enkripsi AES-256 untuk data at rest
-- Akses terbatas hanya untuk tim penelitian
-- Tidak dibagikan ke pihak ketiga
-- Penghapusan data setelah periode kerjasama berakhir
+| No | Data/Informasi                                 | Batasan Usulan                                                 |
+| -- | ---------------------------------------------- | -------------------------------------------------------------- |
+| 1  | Statistik kepatuhan LHKPN per instansi         | Agregat dan tanpa identitas individu                           |
+| 2  | Informasi pengumuman publik untuk sampel pilot | Jumlah, periode, dan metode akses mengikuti arahan KPK         |
+| 3  | Riwayat pelaporan                              | Hanya jika diperbolehkan KPK dan diperlukan untuk tujuan pilot |
 
-**6. Output yang Diharapkan**
+Lex-DSS tidak meminta, mengumpulkan, atau menyimpan NIK untuk pilot ini.
 
-- Laporan hasil riset dan pengembangan
-- Publikasi ilmiah terkait deteksi anomali kekayaan
-- Rekomendasi kebijakan untuk peningkatan sistem LHKPN
+## 4. Komitmen Penggunaan dan Pelindungan Data
 
-**7. Waktu Pelaksanaan**
+- Tidak melakukan pengambilan data otomatis, pengunduhan massal, atau bypass CAPTCHA tanpa persetujuan tertulis KPK.
+- Tidak membagikan data mentah kepada pihak ketiga.
+- Membatasi akses data pada penanggung jawab yang ditetapkan.
+- Mencatat aktivitas akses dan pemrosesan dalam log audit.
+- Menerapkan pengamanan teknis yang proporsional, masa retensi terbatas, dan penghapusan data setelah pilot/kerja sama berakhir sesuai arahan KPK.
+- Melakukan publikasi hasil hanya dalam bentuk agregat atau anonim, jika diperbolehkan KPK.
 
-Periode kerjasama yang diusulkan: **6 (enam) bulan** sejak persetujuan diberikan.
+## 5. Permohonan Arahan
 
-**8. Kontak Penanggung Jawab**
+Mohon KPK berkenan memberikan arahan mengenai:
 
-| Nama | Jabatan | Email | Telepon |
-|------|----------|-------|---------|
-| [NAMA] | Project Lead | [EMAIL] | [TELEPON] |
+1. mekanisme yang dapat ditempuh oleh pelaku usaha perseorangan ber-NIB untuk melakukan pilot riset;
+2. kebutuhan dokumen, persyaratan keamanan, dan bentuk kerja sama yang diperlukan;
+3. batasan penggunaan informasi e-Announcement yang telah diumumkan kepada publik; dan
+4. kontak/unit yang tepat untuk tindak lanjut teknis dan administrasi.
 
----
+## 6. Waktu Pelaksanaan
 
-Demikian surat permohonan ini kami sampaikan. Atas perhatian dan persetujuan yang diberikan, kami ucapkan terima kasih.
+Apabila disetujui, periode pilot yang diusulkan adalah **6 (enam) bulan** sejak mekanisme dan ruang lingkup disepakati secara tertulis.
 
-Hormat kami,
+## 7. Kontak Penanggung Jawab
 
-**Lex-DSS Project Team**
+| Nama                  | Status Usaha                                   | Email                     | Telepon        |
+| --------------------- | ---------------------------------------------- | ------------------------- | -------------- |
+| AMIRUL PUTRA JUSTICIA | Pelaku usaha perseorangan / Pengembang Lex-DSS | amirulputra0507@gmail.com | +6282134402383 |
 
-[TANDA TANGAN]
+Demikian permohonan ini saya sampaikan. Atas perhatian dan arahan Bapak/Ibu, saya ucapkan terima kasih.
 
-[NAMA]
-Project Lead
+Hormat saya,
+
+**Amirul Putra Justicia**
+Pelaku Usaha Perseorangan / Pengembang Lex-DSS
+
+![1790569958159](image/SURAT_PERMOHONAN_KERJASAMA_LHKPN/1790569958159.png)
 
 ---
 
 **Lampiran:**
-1. Proposal teknis Lex-DSS (terlampir)
-2. Surat keterangan institusi (jika ada)
-3. Daftar tim penelitian
+
+1. Salinan NIB dan identitas penanggung jawab;
+2. Proposal teknis ringkas Lex-DSS;
+3. Diagram arsitektur dan daftar data yang mungkin diproses;
+4. Kebijakan privasi, keamanan, retensi, dan penghapusan data.
