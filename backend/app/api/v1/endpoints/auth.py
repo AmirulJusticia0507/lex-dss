@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Response
+from fastapi import APIRouter, Depends, HTTPException, status, Response, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from pydantic import BaseModel, EmailStr, Field
@@ -18,6 +18,7 @@ from app.core.security import (
 )
 from app.models.user import User
 from app.models.password_reset_token import PasswordResetToken, RESET_TOKEN_EXPIRE_HOURS
+from app.services.captcha import verify_recaptcha
 
 router = APIRouter()
 
@@ -27,11 +28,13 @@ class UserCreate(BaseModel):
     password: str = Field(..., min_length=8, max_length=128)
     full_name: str | None = Field(None, max_length=255)
     institution: str | None = Field(None, max_length=255)
+    recaptcha_token: str | None = None
 
 
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
+    recaptcha_token: str | None = None
 
 
 class Token(BaseModel):
@@ -60,11 +63,13 @@ class PreferencesRequest(BaseModel):
 
 class ForgotPasswordRequest(BaseModel):
     email: EmailStr
+    recaptcha_token: str | None = None
 
 
 class ResetPasswordRequest(BaseModel):
     token: str
     new_password: str = Field(..., min_length=8, max_length=128)
+    recaptcha_token: str | None = None
 
 
 class UserResponse(BaseModel):
@@ -82,7 +87,20 @@ class UserResponse(BaseModel):
 
 
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
-async def register(user_in: UserCreate, db: AsyncSession = Depends(get_db)):
+async def register(
+    user_in: UserCreate,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+):
+    # reCAPTCHA verification
+    client_ip = request.client.host if request.client else None
+    ok, score, msg = await verify_recaptcha(user_in.recaptcha_token or "", remote_ip=client_ip)
+    if not ok:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"reCAPTCHA verification failed: {msg}",
+        )
+
     result = await db.execute(select(User).where(User.email == user_in.email))
     existing_user = result.scalar_one_or_none()
     if existing_user:
@@ -105,7 +123,20 @@ async def register(user_in: UserCreate, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/login", response_model=Token)
-async def login(user_in: UserLogin, db: AsyncSession = Depends(get_db)):
+async def login(
+    user_in: UserLogin,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+):
+    # reCAPTCHA verification
+    client_ip = request.client.host if request.client else None
+    ok, score, msg = await verify_recaptcha(user_in.recaptcha_token or "", remote_ip=client_ip)
+    if not ok:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"reCAPTCHA verification failed: {msg}",
+        )
+
     result = await db.execute(select(User).where(User.email == user_in.email))
     user = result.scalar_one_or_none()
     if not user or not verify_password(user_in.password, user.hashed_password):
@@ -212,9 +243,19 @@ async def change_password(
 @router.post("/forgot-password")
 async def forgot_password(
     request: ForgotPasswordRequest,
+    http_request: Request,
     db: AsyncSession = Depends(get_db),
 ):
     """Generate a password reset token. Always returns success to avoid email enumeration."""
+    # reCAPTCHA verification
+    client_ip = http_request.client.host if http_request.client else None
+    ok, score, msg = await verify_recaptcha(request.recaptcha_token or "", remote_ip=client_ip)
+    if not ok:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"reCAPTCHA verification failed: {msg}",
+        )
+
     result = await db.execute(select(User).where(User.email == request.email))
     user = result.scalar_one_or_none()
     if user:
@@ -235,9 +276,19 @@ async def forgot_password(
 @router.post("/reset-password")
 async def reset_password(
     request: ResetPasswordRequest,
+    http_request: Request,
     db: AsyncSession = Depends(get_db),
 ):
     """Reset password using a valid token."""
+    # reCAPTCHA verification
+    client_ip = http_request.client.host if http_request.client else None
+    ok, score, msg = await verify_recaptcha(request.recaptcha_token or "", remote_ip=client_ip)
+    if not ok:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"reCAPTCHA verification failed: {msg}",
+        )
+
     result = await db.execute(
         select(PasswordResetToken).where(PasswordResetToken.token == request.token)
     )

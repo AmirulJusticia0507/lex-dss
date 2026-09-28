@@ -62,9 +62,10 @@ class Settings(BaseSettings):
     LEX_INTEGRITY_URL: str = "http://localhost:3000"
     INTERNAL_API_KEY: Optional[str] = None
     
-    class Config:
-        env_file = ".env"
-        case_sensitive = True
+    # reCAPTCHA
+    RECAPTCHA_SECRET: Optional[str] = None
+    RECAPTCHA_ENABLED: bool = False  # Set true di production
+    RECAPTCHA_THRESHOLD: float = 0.5  # reCAPTCHA v3 score threshold
     
     @property
     def database_url(self) -> str:
