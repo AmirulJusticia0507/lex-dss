@@ -4,6 +4,7 @@ from sqlalchemy import select
 from pydantic import BaseModel, EmailStr, Field
 from datetime import timedelta, datetime
 import uuid
+import secrets
 from jose import jwt, JWTError
 
 from app.core.database import get_db
@@ -16,6 +17,7 @@ from app.core.security import (
     settings,
 )
 from app.models.user import User
+from app.models.password_reset_token import PasswordResetToken, RESET_TOKEN_EXPIRE_HOURS
 
 router = APIRouter()
 
@@ -56,6 +58,15 @@ class PreferencesRequest(BaseModel):
     preferences: dict
 
 
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str = Field(..., min_length=8, max_length=128)
+
+
 class UserResponse(BaseModel):
     id: uuid.UUID
     email: str
@@ -65,7 +76,7 @@ class UserResponse(BaseModel):
     is_active: bool
     created_at: datetime | None = None
     last_login: datetime | None = None
-    
+
     class Config:
         from_attributes = True
 
@@ -196,6 +207,56 @@ async def change_password(
     current_user.hashed_password = get_password_hash(request.new_password)
     await db.commit()
     return {"message": "Password updated successfully"}
+
+
+@router.post("/forgot-password")
+async def forgot_password(
+    request: ForgotPasswordRequest,
+    db: AsyncSession = Depends(get_db),
+):
+    """Generate a password reset token. Always returns success to avoid email enumeration."""
+    result = await db.execute(select(User).where(User.email == request.email))
+    user = result.scalar_one_or_none()
+    if user:
+        token = secrets.token_urlsafe(32)
+        reset_token = PasswordResetToken(
+            user_id=user.id,
+            token=token,
+            expires_at=datetime.utcnow() + timedelta(hours=RESET_TOKEN_EXPIRE_HOURS),
+        )
+        db.add(reset_token)
+        await db.commit()
+        # In production, send email with the token. For now, return token in dev mode.
+        if settings.DEBUG:
+            return {"message": "Reset token generated", "token": token, "expires_in": RESET_TOKEN_EXPIRE_HOURS * 3600}
+    return {"message": "If the email exists, a reset token has been generated"}
+
+
+@router.post("/reset-password")
+async def reset_password(
+    request: ResetPasswordRequest,
+    db: AsyncSession = Depends(get_db),
+):
+    """Reset password using a valid token."""
+    result = await db.execute(
+        select(PasswordResetToken).where(PasswordResetToken.token == request.token)
+    )
+    reset_token = result.scalar_one_or_none()
+    if not reset_token or not reset_token.is_valid:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired reset token",
+        )
+    user = await db.get(User, reset_token.user_id)
+    if not user or not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired reset token",
+        )
+    user.hashed_password = get_password_hash(request.new_password)
+    reset_token.used = True
+    await db.commit()
+    return {"message": "Password reset successfully"}
 
 
 @router.get("/preferences")
