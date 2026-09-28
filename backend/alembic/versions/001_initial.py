@@ -8,6 +8,7 @@ Create Date: 2026-09-26
 from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import UUID, JSONB
+from pgvector.sqlalchemy import Vector
 import uuid
 
 revision = '001'
@@ -59,7 +60,7 @@ def upgrade() -> None:
         sa.Column('content', sa.Text(), nullable=False),
         sa.Column('domain', sa.String(50), nullable=True),
         sa.Column('hierarchy_id', sa.Integer(), nullable=True),
-        sa.Column('embedding', VECTOR(1536), nullable=True),
+        sa.Column('embedding', Vector(1536), nullable=True),
         sa.Column('meta_data', JSONB(), nullable=True),
         sa.Column('created_at', sa.DateTime(), nullable=False, server_default=sa.func.now()),
         sa.Column('updated_at', sa.DateTime(), nullable=False, server_default=sa.func.now()),
