@@ -19,7 +19,7 @@ from app.core.database import async_session_maker  # noqa: E402
 from app.core.security import get_password_hash  # noqa: E402
 from app.models.user import User  # noqa: E402
 
-SUPERADMIN_EMAIL = "superadmin@lex.local"
+SUPERADMIN_EMAIL = "superadmin@lexdss.io"
 SUPERADMIN_PASSWORD = "gedangbosok"
 
 
