@@ -113,7 +113,8 @@ function calculateRiskScore() {
   if (riskScore.value >= 75) riskLevel.value = 'SANGAT TINGGI'
   else if (riskScore.value >= 50) riskLevel.value = 'TINGGI'
   else if (riskScore.value >= 25) riskLevel.value = 'SEDANG'
-  else riskLevel.value = 'RENDAH'
+  else if (riskScore.value >= 10) riskLevel.value = 'RENDAH'
+  else riskLevel.value = 'SANGAT RENDAH'
 
   riskFactors.value = [
     { id: 1, title: 'Kontradiksi Lex Superior', description: `${stats.value.highRisk} kontradiksi hierarki perundang-undangan terdeteksi`, severity: stats.value.highRisk > 0 ? 'HIGH' : 'LOW' },
