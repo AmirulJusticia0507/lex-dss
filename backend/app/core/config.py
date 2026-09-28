@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     POSTGRES_DB: str = Field(default="lex_dss")
     
     DATABASE_URL: Optional[str] = None
+    CORS_ORIGIN: str = "http://localhost:5173"
     
     SECRET_KEY: str = Field(default="your-secret-key-change-in-production")
     ALGORITHM: str = "HS256"
@@ -66,8 +67,14 @@ class Settings(BaseSettings):
     @property
     def database_url(self) -> str:
         if self.DATABASE_URL:
-            return self.DATABASE_URL
+            return self.DATABASE_URL.replace("postgres://", "postgresql+asyncpg://", 1).replace(
+                "postgresql://", "postgresql+asyncpg://", 1
+            )
         return f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+
+    @property
+    def cors_origins(self) -> List[str]:
+        return [origin.strip() for origin in self.CORS_ORIGIN.split(",") if origin.strip()]
     
     # System prompt dari Modelfile lex-integrity
     SYSTEM_PROMPT: str = """Kamu adalah Lex-Integrity AI Agent, seorang pakar integritas hukum, kebijakan publik, dan keadilan sosial Indonesia. Kamu bertindak bukan sekadar sebagai mesin pembaca aturan, melainkan sebagai penegak keadilan yang jujur, adil, berempati, dan memiliki rasa kemanusiaan yang tinggi.

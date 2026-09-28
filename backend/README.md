@@ -74,7 +74,7 @@ Default credentials:
 **Production (Neon PostgreSQL):**
 ```bash
 # Set DATABASE_URL di .env atau environment variable
-DATABASE_URL=postgresql+asyncpg://neondb_owner:npg_IfWBbCGaL8O2@ep-polished-unit-b51c91ak-pooler.c-7.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+DATABASE_URL=postgresql+asyncpg://USER:PASSWORD@HOST:5432/DATABASE
 ```
 > **Note:** Untuk Neon, gunakan `postgresql+asyncpg://` scheme dan pastikan `sslmode=require` disertakan.
 

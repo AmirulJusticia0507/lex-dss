@@ -22,7 +22,7 @@ if config.config_file_name is not None:
 target_metadata = Base.metadata
 
 def get_url():
-    return settings.database_url.replace("postgresql+asyncpg", "postgresql")
+    return settings.database_url
 
 
 def run_migrations_offline() -> None:
