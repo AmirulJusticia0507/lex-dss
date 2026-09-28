@@ -230,7 +230,11 @@ function getNotificationTypeClass(type) {
       </el-header>
 
       <el-main class="main-content">
-        <router-view />
+        <router-view v-slot="{ Component }">
+          <transition name="page" mode="out-in">
+            <component :is="Component" />
+          </transition>
+        </router-view>
       </el-main>
     </el-container>
   </el-container>
@@ -476,13 +480,42 @@ export default {
   background: #f4f7fb;
 }
 
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.3s ease;
+/* Page transition */
+.page-enter-active,
+.page-leave-active {
+  transition: opacity 0.35s ease, transform 0.35s ease;
 }
 
-.fade-enter-from,
-.fade-leave-to {
+.page-enter-from {
   opacity: 0;
+  transform: translateY(8px);
+}
+
+.page-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+
+/* Scrollbar */
+.sidebar-scroll::-webkit-scrollbar,
+.main-content::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.sidebar-scroll::-webkit-scrollbar-track,
+.main-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar-scroll::-webkit-scrollbar-thumb,
+.main-content::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+}
+
+.sidebar-scroll::-webkit-scrollbar-thumb:hover,
+.main-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.2);
 }
 </style>
