@@ -289,15 +289,17 @@ async def import_sipp_decisions(
                     # Determine hierarchy
                     hierarchy_id = None
                     if decision.ratio_decidendi:
+                        ratio_text = decision.ratio_decidendi.lower()
+                        hierarchy_markers = {
+                            "UUD": ["uud 1945", "undang-undang dasar", "konstitusi"],
+                            "UU": ["uu no.", "undang-undang"],
+                            "PP": ["pp no.", "peraturan pemerintah"],
+                            "PERMEN": ["permen no.", "peraturan menteri"],
+                            "PERDA": ["perda no.", "peraturan daerah"],
+                        }
                         for level, hierarchy_id_val in hierarchies.items():
-                            if any(kw.lower() in decision.ratio_decidendi.lower() for kw in [
-                                "UUD 1945", "undang-undang dasar", "konstitusi"
-                            ] if level == "UUD") or
-                               (level == "UU" and "UU No." in decision.ratio_decidendi) or
-                               (level == "PP" and "PP No." in decision.ratio_decidendi) or
-                               (level == "PERMEN" and "Permen No." in decision.ratio_decidendi) or
-                               (level == "PERDA" and "Perda No." in decision.ratio_decidendi):
-                                hierarchy_id = hierarchies[level].id
+                            if any(marker in ratio_text for marker in hierarchy_markers.get(level, [])):
+                                hierarchy_id = hierarchy_id_val.id
                                 break
 
                     # Create legal article from SIPP decision
