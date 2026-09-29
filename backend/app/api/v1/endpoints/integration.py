@@ -15,13 +15,34 @@ from app.api.v1.endpoints.analysis import (
 )
 from app.core.config import settings
 from app.core.database import get_db
-from app.core.security import get_current_active_user
+from app.core.security import get_current_active_user, require_roles
 from app.models.legal import LegalArticle, LegalHierarchy
 from app.models.user import User
 from app.services.lex_integrity_client import LexIntegrityClient
 from app.services.lex_integrity_service import LexIntegrityService
 
 router = APIRouter()
+
+
+@router.get("/sources")
+async def external_source_status(
+    current_user: User = Depends(require_roles("admin")),
+):
+    """Show readiness without ever returning integration credentials."""
+    sources = {
+        "sipp": (settings.SIPP_API_BASE_URL, settings.SIPP_API_KEY),
+        "jdihn_bphn": (settings.JDIHN_API_BASE_URL, settings.JDIHN_API_KEY),
+        "oss": (settings.OSS_API_BASE_URL, settings.OSS_API_CLIENT_ID, settings.OSS_API_CLIENT_SECRET),
+        "djp": (settings.DJP_API_BASE_URL, settings.DJP_API_CLIENT_ID, settings.DJP_API_CLIENT_SECRET),
+        "kemenperin": (settings.KEMENPERIN_API_BASE_URL, settings.KEMENPERIN_API_KEY),
+        "dpr": (settings.DPR_API_BASE_URL, settings.DPR_API_KEY),
+    }
+    return {
+        "sources": [
+            {"name": name, "configured": all(values), "missing": sum(value is None or value == "" for value in values)}
+            for name, values in sources.items()
+        ]
+    }
 
 
 class DelegateRequest(BaseModel):

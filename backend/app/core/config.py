@@ -61,6 +61,22 @@ class Settings(BaseSettings):
     REDIS_URL: str = "redis://localhost:6379/0"
     LEX_INTEGRITY_URL: str = "http://localhost:3000"
     INTERNAL_API_KEY: Optional[str] = None
+
+    # External public-sector data integrations. Secrets stay in .env only.
+    SIPP_API_BASE_URL: Optional[str] = None
+    SIPP_API_KEY: Optional[str] = None
+    JDIHN_API_BASE_URL: Optional[str] = None
+    JDIHN_API_KEY: Optional[str] = None
+    OSS_API_BASE_URL: Optional[str] = None
+    OSS_API_CLIENT_ID: Optional[str] = None
+    OSS_API_CLIENT_SECRET: Optional[str] = None
+    DJP_API_BASE_URL: Optional[str] = None
+    DJP_API_CLIENT_ID: Optional[str] = None
+    DJP_API_CLIENT_SECRET: Optional[str] = None
+    KEMENPERIN_API_BASE_URL: Optional[str] = None
+    KEMENPERIN_API_KEY: Optional[str] = None
+    DPR_API_BASE_URL: Optional[str] = None
+    DPR_API_KEY: Optional[str] = None
     
     # CAPTCHA Configuration (multi-provider: hcaptcha, math, none)
     # hCaptcha (privacy-focused, drop-in replacement for reCAPTCHA)
