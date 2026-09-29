@@ -1,14 +1,14 @@
 """add case law table
 
-Revision ID: 002_add_case_law
-Revises: 001_initial
+Revision ID: 004
+Revises: 003
 """
 from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
-revision = "002_add_case_law"
-down_revision = "001_initial"
+revision = "004"
+down_revision = "003"
 branch_labels = None
 depends_on = None
 

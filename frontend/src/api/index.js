@@ -76,6 +76,7 @@ export const usersApi = {
 export const deviationApi = {
   scoreDeviation: (data) => api.post('/deviation/score', data),
   scoreDocument: (data) => api.post('/deviation/score/document', data, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  getDocumentJob: (id) => api.get(`/deviation/score/document/${id}`),
   listReports: (params) => api.get('/deviation/reports', { params }),
   getReport: (id) => api.get(`/deviation/reports/${id}`),
   updateKYFlag: (id, data) => api.post(`/deviation/reports/${id}/ky-flag`, data),
