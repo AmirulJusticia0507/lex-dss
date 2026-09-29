@@ -168,10 +168,12 @@ Server berjalan di: http://localhost:8000
 
 ### Deviation Scoring (DAS)
 - `POST /api/v1/deviation/score` - Calculate deviation score
-- `POST /api/v1/deviation/reports` - Create deviation report
+- `POST /api/v1/deviation/score/document` - Queue a PDF/DOCX verdict analysis
 - `GET /api/v1/deviation/reports` - List reports
 - `GET /api/v1/deviation/reports/{id}` - Get report detail
-- `GET /api/v1/deviation/reports/stats/summary` - Risk level statistics
+- `POST /api/v1/deviation/reports/{id}/ky-flag` - Submit, dismiss, or escalate KY flag
+- `GET /api/v1/deviation/reports/{id}/export` - Export JSON, CSV, or PDF
+- `GET /api/v1/deviation/statistics` - Risk level statistics
 
 ### RAG Pipeline
 - `POST /api/v1/rag/search` - Semantic search legal articles

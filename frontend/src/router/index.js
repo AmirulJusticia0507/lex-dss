@@ -66,6 +66,12 @@ const routes = [
     meta: { title: 'Contract Analyzer', icon: 'Document' },
   },
   {
+    path: '/deviation-analysis',
+    name: 'DeviationAnalysis',
+    component: () => import('@/views/DeviationAnalysis.vue'),
+    meta: { title: 'Deviation Analysis', icon: 'TrendCharts' },
+  },
+  {
     path: '/settings',
     name: 'Settings',
     component: () => import('@/views/Settings.vue'),

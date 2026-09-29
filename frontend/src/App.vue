@@ -276,6 +276,7 @@ export default {
         '/conflict-checker': 'Conflict Checker',
         '/dss-panel': 'DSS Panel',
         '/legal-library': 'Legal Library',
+        '/deviation-analysis': 'Deviation Analysis',
         '/profile': 'Profil & Akun',
         '/settings': 'Pengaturan',
       }

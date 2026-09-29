@@ -73,4 +73,14 @@ export const usersApi = {
   activate: (id) => api.post(`/users/${id}/activate`),
 }
 
+export const deviationApi = {
+  scoreDeviation: (data) => api.post('/deviation/score', data),
+  scoreDocument: (data) => api.post('/deviation/score/document', data, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  listReports: (params) => api.get('/deviation/reports', { params }),
+  getReport: (id) => api.get(`/deviation/reports/${id}`),
+  updateKYFlag: (id, data) => api.post(`/deviation/reports/${id}/ky-flag`, data),
+  exportReport: (id, format = 'json') => api.get(`/deviation/reports/${id}/export`, { params: { format }, responseType: 'blob' }),
+  getStats: (params) => api.get('/deviation/statistics', { params }),
+}
+
 export default api
