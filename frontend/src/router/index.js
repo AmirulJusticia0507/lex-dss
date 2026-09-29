@@ -72,6 +72,12 @@ const routes = [
     meta: { title: 'Deviation Analysis', icon: 'TrendCharts' },
   },
   {
+    path: '/civic-moderation',
+    name: 'CivicModeration',
+    component: () => import('@/views/CivicModeration.vue'),
+    meta: { title: 'Civic Moderation', icon: 'ChatDotRound' },
+  },
+  {
     path: '/settings',
     name: 'Settings',
     component: () => import('@/views/Settings.vue'),

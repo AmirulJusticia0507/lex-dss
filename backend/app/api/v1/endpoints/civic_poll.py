@@ -124,6 +124,8 @@ async def list_transcript_queue(
                 "end_seconds": float(record.end_seconds) if record.end_seconds is not None else None,
                 "title": record.title,
                 "text": record.transcript_text,
+                "moderator_notes": record.moderator_notes,
+                "promoted_event_id": record.promoted_event_id,
                 "created_at": record.created_at,
             }
             for record in records

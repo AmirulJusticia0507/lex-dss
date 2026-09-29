@@ -1,7 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import { ElMenu, ElMenuItem, ElIcon } from 'element-plus'
-import { Monitor, Warning, DataAnalysis, Collection, Setting, User, Document, Files, TrendCharts } from '@element-plus/icons-vue'
+import { Monitor, Warning, DataAnalysis, Collection, Setting, User, Document, Files, TrendCharts, ChatDotRound } from '@element-plus/icons-vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores'
 
@@ -25,6 +25,7 @@ const menuItems = [
   { path: '/case-law', label: 'Case Law Search', icon: Files },
   { path: '/contract-analyzer', label: 'Contract Analyzer', icon: Document },
   { path: '/deviation-analysis', label: 'Deviation Analysis', icon: TrendCharts },
+  { path: '/civic-moderation', label: 'Civic Moderation', icon: ChatDotRound },
   { path: '/profile', label: 'Profil & Akun', icon: User },
   { path: '/settings', label: 'Pengaturan', icon: Setting },
 ]

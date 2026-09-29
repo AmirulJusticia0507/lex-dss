@@ -277,6 +277,7 @@ export default {
         '/dss-panel': 'DSS Panel',
         '/legal-library': 'Legal Library',
         '/deviation-analysis': 'Deviation Analysis',
+        '/civic-moderation': 'Civic Moderation',
         '/profile': 'Profil & Akun',
         '/settings': 'Pengaturan',
       }

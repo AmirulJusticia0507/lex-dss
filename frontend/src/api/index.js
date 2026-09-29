@@ -84,4 +84,11 @@ export const deviationApi = {
   getStats: (params) => api.get('/deviation/statistics', { params }),
 }
 
+export const civicPollApi = {
+  queueTranscript: (data) => api.post('/civic-poll/transcripts/queue', data, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  listQueue: (status = 'PENDING') => api.get('/civic-poll/transcripts/queue', { params: { status } }),
+  reviewCandidate: (id, data) => api.post(`/civic-poll/transcripts/queue/${id}/review`, data),
+  promoteCandidate: (id, data) => api.post(`/civic-poll/transcripts/queue/${id}/promote`, data, { timeout: 60000 }),
+}
+
 export default api
