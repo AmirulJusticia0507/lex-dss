@@ -1,6 +1,10 @@
 import pytest
 
-from app.services.transcript import group_topic_candidates, parse_transcript
+from app.services.transcript import (
+    group_topic_candidates,
+    parse_transcript,
+    validate_review_transition,
+)
 
 
 def test_parse_srt_preserves_timestamps_and_text():
@@ -52,3 +56,12 @@ def test_topic_candidates_split_on_long_silence():
     assert candidates[0]["start_seconds"] == 0.0
     assert candidates[0]["end_seconds"] == 20.0
     assert candidates[1]["title"] == "Pembahasan beralih ke transportasi"
+
+
+def test_review_transition_requires_pending_and_rejection_reason():
+    validate_review_transition("PENDING", "APPROVED", None)
+
+    with pytest.raises(ValueError, match="Alasan"):
+        validate_review_transition("PENDING", "REJECTED", "")
+    with pytest.raises(ValueError, match="sudah diproses"):
+        validate_review_transition("APPROVED", "REJECTED", "Duplikat")

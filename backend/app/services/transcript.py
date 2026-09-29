@@ -72,3 +72,12 @@ def group_topic_candidates(
         }
         for index, group in enumerate(groups, start=1)
     ]
+
+
+def validate_review_transition(current_status: str, decision: str, notes: str | None) -> None:
+    if current_status != "PENDING":
+        raise ValueError("Kandidat ini sudah diproses")
+    if decision not in {"APPROVED", "REJECTED"}:
+        raise ValueError("Keputusan moderator tidak valid")
+    if decision == "REJECTED" and not (notes or "").strip():
+        raise ValueError("Alasan wajib diisi saat kandidat ditolak")

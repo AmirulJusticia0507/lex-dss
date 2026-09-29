@@ -1,3 +1,4 @@
+import uuid
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
@@ -19,9 +20,19 @@ from app.services.civic_poll_client import (
     normalize_aggregate,
     payload_hash,
 )
-from app.services.transcript import group_topic_candidates, parse_transcript
+from app.services.transcript import (
+    group_topic_candidates,
+    parse_transcript,
+    validate_review_transition,
+)
 
 router = APIRouter()
+
+
+class TranscriptReviewRequest(BaseModel):
+    decision: str
+    notes: str | None = Field(None, max_length=2000)
+    title: str | None = Field(None, min_length=1, max_length=200)
 
 
 async def _parse_transcript_upload(file: UploadFile) -> tuple[str, list[dict[str, object]]]:
@@ -116,6 +127,45 @@ async def list_transcript_queue(
             }
             for record in records
         ],
+    }
+
+
+@router.post("/transcripts/queue/{candidate_id}/review")
+async def review_transcript_candidate(
+    candidate_id: str,
+    payload: TranscriptReviewRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_roles("admin", "analyst")),
+):
+    try:
+        candidate_uuid = uuid.UUID(candidate_id)
+    except ValueError as error:
+        raise HTTPException(status_code=422, detail="candidate_id tidak valid") from error
+    candidate = await db.scalar(
+        select(CivicTranscriptCandidate).where(CivicTranscriptCandidate.id == candidate_uuid)
+    )
+    if candidate is None:
+        raise HTTPException(status_code=404, detail="Kandidat transkrip tidak ditemukan")
+    try:
+        validate_review_transition(candidate.status, payload.decision, payload.notes)
+    except ValueError as error:
+        status_code = 409 if candidate.status != "PENDING" else 422
+        raise HTTPException(status_code=status_code, detail=str(error)) from error
+
+    candidate.status = payload.decision
+    candidate.moderator_notes = payload.notes
+    candidate.reviewed_by_id = current_user.id
+    candidate.reviewed_at = datetime.utcnow()
+    if payload.title:
+        candidate.title = payload.title
+    await db.commit()
+    return {
+        "id": str(candidate.id),
+        "status": candidate.status,
+        "title": candidate.title,
+        "moderator_notes": candidate.moderator_notes,
+        "reviewed_by_id": str(candidate.reviewed_by_id),
+        "reviewed_at": candidate.reviewed_at,
     }
 
 
