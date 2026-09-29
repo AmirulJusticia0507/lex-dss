@@ -1,6 +1,8 @@
+from datetime import datetime
+
 from sqlalchemy import Column, String, DateTime, JSON, Text
 from sqlalchemy.dialects.postgresql import UUID
-from app.models.base import Base
+from app.core.database import Base
 import uuid
 
 
@@ -8,7 +10,7 @@ class CaseLaw(Base):
     __tablename__ = "case_law"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    case_number = Column(String(255), nullable=False)
+    case_number = Column(String(255), nullable=False, unique=True)
     case_title = Column(String(500), nullable=False)
     court_name = Column(String(255), nullable=False)
     case_type = Column(String(100), nullable=False)
@@ -18,7 +20,7 @@ class CaseLaw(Base):
     summary = Column(Text, nullable=True)
     full_text = Column(Text, nullable=True)
     source_url = Column(String(500), nullable=True)
-    created_at = Column(DateTime, nullable=False)
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
 
 
 class ContractAnalysis(Base):

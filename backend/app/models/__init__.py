@@ -2,6 +2,7 @@ from app.models.legal import LegalHierarchy, LegalArticle, NormConflict
 from app.models.audit import DecisionAuditLog, JudicialDeviationReport
 from app.models.user import User
 from app.models.password_reset_token import PasswordResetToken
+from app.models.case_law import CaseLaw
 
 __all__ = [
     "LegalHierarchy",
@@ -11,4 +12,5 @@ __all__ = [
     "JudicialDeviationReport",
     "User",
     "PasswordResetToken",
+    "CaseLaw",
 ]

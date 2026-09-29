@@ -10,8 +10,10 @@ Usage:
 import argparse
 import asyncio
 import json
+import os
 import re
 import sys
+from datetime import datetime
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Optional, Dict, Any
@@ -21,9 +23,16 @@ import httpx
 BACKEND_DIR = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(BACKEND_DIR))
 
-SIPP_BASE_URL = "https://sipp.mahkamahagung.go.id"
-SIPP_SEARCH_URL = f"{SIPP_BASE_URL}/api/search"
-SIPP_VERDICT_URL = f"{SIPP_BASE_URL}/api/verdict"
+SIPP_API_BASE_URL = os.getenv("SIPP_API_BASE_URL", "").rstrip("/")
+
+
+def _sipp_api_url(path: str) -> str:
+    if not SIPP_API_BASE_URL:
+        raise RuntimeError(
+            "SIPP_API_BASE_URL belum dikonfigurasi. Gunakan endpoint API SIPP yang "
+            "telah diotorisasi; portal SIPP publik tidak menyediakan API anonim."
+        )
+    return f"{SIPP_API_BASE_URL}/{path.lstrip('/')}"
 
 
 @dataclass
@@ -70,13 +79,13 @@ async def search_decisions(
             params["court"] = court_filter
 
         try:
-            response = await client.get(SIPP_SEARCH_URL, params=params)
+            response = await client.get(_sipp_api_url("search"), params=params)
             response.raise_for_status()
             data = response.json()
-        except Exception as e:
+        except httpx.HTTPError as e:
             logger = __import__("logging").getLogger(__name__)
-            logger.warning(f"SIPP search API failed: {e}, falling back to mock data")
-            return SIPPSearchResult(total=0, page=page, decisions=[])
+            logger.warning("SIPP search API failed: %s", e)
+            raise RuntimeError("SIPP search gagal") from e
 
         total = data.get("total", 0)
         decisions_data = data.get("decisions", [])
@@ -112,10 +121,10 @@ async def fetch_verdict_detail(verdict_number: str) -> Optional[CourtDecision]:
         params = {"verdict_number": verdict_number}
 
         try:
-            response = await client.get(SIPP_VERDICT_URL, params=params)
+            response = await client.get(_sipp_api_url("verdict"), params=params)
             response.raise_for_status()
             data = response.json()
-        except Exception as e:
+        except httpx.HTTPError as e:
             logger = __import__("logging").getLogger(__name__)
             logger.warning(f"SIPP verdict detail API failed for {verdict_number}: {e}")
             return None
@@ -150,7 +159,7 @@ async def batch_fetch_decisions(verdict_numbers: List[str]) -> List[Optional[Cou
             params = {"verdict_number": verdict_number}
 
             try:
-                response = await client.get(SIPP_VERDICT_URL, params=params)
+                response = await client.get(_sipp_api_url("verdict"), params=params)
                 response.raise_for_status()
                 data = response.json()
 
@@ -241,8 +250,7 @@ async def import_sipp_decisions(
     """Import SIPP decisions into the database for deviation analysis."""
     from sqlalchemy import select
     from app.core.database import async_session_maker
-    from app.models.legal import LegalArticle, LegalHierarchy
-    from app.engine.deviation import calculate_deviation_score, DeviationScoreRequest
+    from app.models.case_law import CaseLaw
 
     total_imported = 0
 
@@ -262,66 +270,31 @@ async def import_sipp_decisions(
                 break
 
             async with async_session_maker() as session:
-                # Ensure hierarchy types exist
-                hierarchy_result = await session.execute(
-                    select(LegalHierarchy).where(
-                        LegalHierarchy.type_name.in_(["UU", "PERDA", "PERMEN", "PP", "UUD"])
-                    )
-                )
-                hierarchies = {h.type_name: h for h in hierarchy_result.scalars().all()}
-
                 for decision in search_result.decisions:
-                    # Check if already exists
                     result = await session.execute(
-                        select(LegalArticle).where(
-                            LegalArticle.verdict_number == decision.verdict_number
-                        )
+                        select(CaseLaw).where(CaseLaw.case_number == decision.case_number)
                     )
                     existing = result.scalar_one_or_none()
                     if existing:
                         continue
 
-                    # Extract legal elements
                     legal_elements = extract_legal_elements(
-                        decision.content or "" or decision.summary or ""
+                        decision.content or decision.summary or ""
                     )
-
-                    # Determine hierarchy
-                    hierarchy_id = None
-                    if decision.ratio_decidendi:
-                        ratio_text = decision.ratio_decidendi.lower()
-                        hierarchy_markers = {
-                            "UUD": ["uud 1945", "undang-undang dasar", "konstitusi"],
-                            "UU": ["uu no.", "undang-undang"],
-                            "PP": ["pp no.", "peraturan pemerintah"],
-                            "PERMEN": ["permen no.", "peraturan menteri"],
-                            "PERDA": ["perda no.", "peraturan daerah"],
-                        }
-                        for level, hierarchy_id_val in hierarchies.items():
-                            if any(marker in ratio_text for marker in hierarchy_markers.get(level, [])):
-                                hierarchy_id = hierarchy_id_val.id
-                                break
-
-                    # Create legal article from SIPP decision
-                    article = LegalArticle(
-                        id=uuid4(),
-                        document_title=f"Putusan Pengadilan - {decision.verdict_number}",
-                        article_number=decision.verdict_number,
-                        content=decision.content or decision.summary or "",
-                        domain="PIDANA",  # Will be refined based on content
-                        hierarchy_id=hierarchy_id,
-                        meta_data={
-                            "source": "SIPP_MK",
-                            "verdict_number": decision.verdict_number,
-                            "case_number": decision.case_number,
-                            "court_name": decision.court_name,
-                            "judge": decision.judge,
-                            "date_decided": decision.date_decided,
-                            "sipp_data": True,
-                        },
-                    )
-                    session.add(article)
-                    await session.flush()
+                    case_type = (legal_elements["detected_domains"] or ["unknown"])[0]
+                    session.add(CaseLaw(
+                        case_number=decision.case_number or decision.verdict_number,
+                        case_title=(decision.summary or decision.verdict_number or "Putusan Pengadilan")[:500],
+                        court_name=decision.court_name or "Tidak diketahui",
+                        case_type=case_type,
+                        verdict_date=_parse_date(decision.date_decided or decision.date),
+                        judge_name=decision.judge,
+                        legal_articles=decision.referenced_articles,
+                        summary=decision.summary,
+                        full_text=decision.content,
+                        source_url=decision.meta_data.get("source_url"),
+                        created_at=datetime.utcnow(),
+                    ))
                     total_imported += 1
 
                 await session.commit()
@@ -331,9 +304,15 @@ async def import_sipp_decisions(
     return total_imported
 
 
-def uuid4():
-    import uuid
-    return uuid.uuid4()
+def _parse_date(value: Optional[str]) -> Optional[datetime]:
+    if not value:
+        return None
+    for format_string in ("%Y-%m-%d", "%d-%m-%Y", "%d/%m/%Y"):
+        try:
+            return datetime.strptime(value[:10], format_string)
+        except ValueError:
+            pass
+    return None
 
 
 def main():
