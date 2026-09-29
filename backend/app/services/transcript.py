@@ -81,3 +81,10 @@ def validate_review_transition(current_status: str, decision: str, notes: str | 
         raise ValueError("Keputusan moderator tidak valid")
     if decision == "REJECTED" and not (notes or "").strip():
         raise ValueError("Alasan wajib diisi saat kandidat ditolak")
+
+
+def validate_promotion(status: str, promoted_event_id: str | None) -> None:
+    if status != "APPROVED":
+        raise ValueError("Hanya kandidat APPROVED yang dapat dijadikan draf polling")
+    if promoted_event_id:
+        raise ValueError("Kandidat ini sudah dipromosikan menjadi draf polling")

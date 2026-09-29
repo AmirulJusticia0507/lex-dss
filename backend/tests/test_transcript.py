@@ -3,6 +3,7 @@ import pytest
 from app.services.transcript import (
     group_topic_candidates,
     parse_transcript,
+    validate_promotion,
     validate_review_transition,
 )
 
@@ -65,3 +66,12 @@ def test_review_transition_requires_pending_and_rejection_reason():
         validate_review_transition("PENDING", "REJECTED", "")
     with pytest.raises(ValueError, match="sudah diproses"):
         validate_review_transition("APPROVED", "REJECTED", "Duplikat")
+
+
+def test_only_unpromoted_approved_candidate_can_be_promoted():
+    validate_promotion("APPROVED", None)
+
+    with pytest.raises(ValueError, match="APPROVED"):
+        validate_promotion("PENDING", None)
+    with pytest.raises(ValueError, match="sudah dipromosikan"):
+        validate_promotion("APPROVED", "POLL-001")

@@ -23,6 +23,7 @@ from app.services.civic_poll_client import (
 from app.services.transcript import (
     group_topic_candidates,
     parse_transcript,
+    validate_promotion,
     validate_review_transition,
 )
 
@@ -329,6 +330,53 @@ async def submit_civic_poll_draft(
     await db.commit()
     await db.refresh(event)
     return CivicPollEventResponse.model_validate(event)
+
+
+@router.post("/transcripts/queue/{candidate_id}/promote")
+async def promote_transcript_candidate(
+    candidate_id: str,
+    payload: PollDraftRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_roles("admin", "analyst")),
+):
+    try:
+        candidate_uuid = uuid.UUID(candidate_id)
+    except ValueError as error:
+        raise HTTPException(status_code=422, detail="candidate_id tidak valid") from error
+    candidate = await db.scalar(
+        select(CivicTranscriptCandidate).where(CivicTranscriptCandidate.id == candidate_uuid)
+    )
+    if candidate is None:
+        raise HTTPException(status_code=404, detail="Kandidat transkrip tidak ditemukan")
+    try:
+        validate_promotion(candidate.status, candidate.promoted_event_id)
+    except ValueError as error:
+        raise HTTPException(status_code=409, detail=str(error)) from error
+
+    source = {
+        "type": "transcript",
+        "title": candidate.filename,
+        "url": candidate.source_url or "",
+        "segment_start_seconds": int(candidate.start_seconds),
+        "segment_end_seconds": (
+            int(candidate.end_seconds) if candidate.end_seconds is not None else None
+        ),
+        "transcript_excerpt": candidate.transcript_text,
+    }
+    draft = payload.model_copy(
+        update={
+            "description": payload.description or candidate.transcript_text,
+            "source": source,
+        }
+    )
+    event = await submit_civic_poll_draft(draft, db, current_user)
+    candidate.promoted_event_id = event.event_id
+    await db.commit()
+    return {
+        "candidate_id": str(candidate.id),
+        "promoted_event_id": event.event_id,
+        "poll": event,
+    }
 
 
 @router.post("/events/{event_id}/collect", response_model=CollectResponse)

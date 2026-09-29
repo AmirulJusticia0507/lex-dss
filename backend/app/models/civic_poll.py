@@ -107,6 +107,7 @@ class CivicTranscriptCandidate(Base):
     transcript_text: Mapped[str] = mapped_column(Text, nullable=False)
     status: Mapped[str] = mapped_column(String(20), nullable=False, default="PENDING")
     moderator_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    promoted_event_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
     created_by_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
     reviewed_by_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
