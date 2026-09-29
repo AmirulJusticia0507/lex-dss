@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
 from pydantic import BaseModel, Field, model_validator
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -19,8 +19,34 @@ from app.services.civic_poll_client import (
     normalize_aggregate,
     payload_hash,
 )
+from app.services.transcript import parse_transcript
 
 router = APIRouter()
+
+
+@router.post("/transcripts/preview")
+async def preview_transcript(
+    file: UploadFile = File(...),
+    source_url: str = Form(""),
+    current_user: User = Depends(require_roles("admin", "analyst")),
+):
+    filename = file.filename or ""
+    if not filename.lower().endswith((".txt", ".srt", ".vtt")):
+        raise HTTPException(status_code=400, detail="Gunakan berkas TXT, SRT, atau VTT")
+    content = await file.read()
+    if len(content) > 5 * 1024 * 1024:
+        raise HTTPException(status_code=413, detail="Ukuran transkrip maksimal 5 MB")
+    try:
+        segments = parse_transcript(content.decode("utf-8-sig"), filename)
+    except (UnicodeDecodeError, ValueError) as error:
+        raise HTTPException(status_code=400, detail=str(error)) from error
+    return {
+        "filename": filename,
+        "source_url": source_url or None,
+        "segment_count": len(segments),
+        "duration_seconds": segments[-1]["end_seconds"],
+        "segments": segments,
+    }
 
 
 class PollOptionInput(BaseModel):
@@ -141,7 +167,9 @@ async def submit_civic_poll_draft(
     )
     digest = content_fingerprint(envelope)
 
-    event = await db.scalar(select(CivicPollEvent).where(CivicPollEvent.event_id == payload.event_id))
+    event = await db.scalar(
+        select(CivicPollEvent).where(CivicPollEvent.event_id == payload.event_id)
+    )
     if event is not None:
         if event.payload_hash == digest:
             return CivicPollEventResponse.model_validate(event)
@@ -278,12 +306,16 @@ async def list_civic_poll_events(
     if status:
         query = query.where(CivicPollEvent.status == status.lower())
     items = (
-        await db.execute(
-            query.order_by(CivicPollEvent.created_at.desc())
-            .offset((page - 1) * page_size)
-            .limit(page_size)
+        (
+            await db.execute(
+                query.order_by(CivicPollEvent.created_at.desc())
+                .offset((page - 1) * page_size)
+                .limit(page_size)
+            )
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
     return [CivicPollEventResponse.model_validate(item) for item in items]
 
 
@@ -304,12 +336,16 @@ async def list_civic_poll_results(
 ):
     await _get_event(event_id, db)
     results = (
-        await db.execute(
-            select(CivicPollResult)
-            .where(CivicPollResult.event_id == event_id)
-            .order_by(CivicPollResult.revision.desc())
+        (
+            await db.execute(
+                select(CivicPollResult)
+                .where(CivicPollResult.event_id == event_id)
+                .order_by(CivicPollResult.revision.desc())
+            )
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
     return [CivicPollResultResponse.model_validate(item) for item in results]
 
 
@@ -339,8 +375,10 @@ async def latest_civic_poll_results(
     if not include_voided:
         query = query.where(CivicPollResult.voided.is_(False))
     results = (
-        await db.execute(query.order_by(CivicPollResult.collected_at.desc()).limit(limit))
-    ).scalars().all()
+        (await db.execute(query.order_by(CivicPollResult.collected_at.desc()).limit(limit)))
+        .scalars()
+        .all()
+    )
 
     return {
         "total": len(results),
