@@ -1,6 +1,6 @@
 import pytest
 
-from app.services.transcript import parse_transcript
+from app.services.transcript import group_topic_candidates, parse_transcript
 
 
 def test_parse_srt_preserves_timestamps_and_text():
@@ -33,3 +33,22 @@ Anggota meminta kajian dampak.
 def test_rejects_caption_without_timestamps():
     with pytest.raises(ValueError, match="Timestamp"):
         parse_transcript("teks tanpa timestamp", "rapat.vtt")
+
+
+def test_topic_candidates_split_on_long_silence():
+    candidates = group_topic_candidates(
+        [
+            {"start_seconds": 0.0, "end_seconds": 10.0, "text": "Usulan retribusi dibahas."},
+            {"start_seconds": 12.0, "end_seconds": 20.0, "text": "Anggota memberi tanggapan."},
+            {
+                "start_seconds": 90.0,
+                "end_seconds": 100.0,
+                "text": "Pembahasan beralih ke transportasi.",
+            },
+        ]
+    )
+
+    assert len(candidates) == 2
+    assert candidates[0]["start_seconds"] == 0.0
+    assert candidates[0]["end_seconds"] == 20.0
+    assert candidates[1]["title"] == "Pembahasan beralih ke transportasi"

@@ -19,7 +19,7 @@ from app.services.civic_poll_client import (
     normalize_aggregate,
     payload_hash,
 )
-from app.services.transcript import parse_transcript
+from app.services.transcript import group_topic_candidates, parse_transcript
 
 router = APIRouter()
 
@@ -46,6 +46,7 @@ async def preview_transcript(
         "segment_count": len(segments),
         "duration_seconds": segments[-1]["end_seconds"],
         "segments": segments,
+        "topic_candidates": group_topic_candidates(segments),
     }
 
 
