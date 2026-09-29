@@ -14,6 +14,7 @@ from app.models.legal import LegalHierarchy, LegalArticle, NormConflict
 from app.models.audit import DecisionAuditLog, JudicialDeviationReport
 from app.models.user import User
 from app.models.password_reset_token import PasswordResetToken
+from app.models.civic_poll import CivicPollEvent, CivicPollResult, CivicTranscriptCandidate
 
 config = context.config
 
@@ -21,6 +22,7 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 target_metadata = Base.metadata
+
 
 def get_url():
     return settings.database_url
@@ -59,4 +61,5 @@ if context.is_offline_mode():
     run_migrations_offline()
 else:
     import asyncio
+
     asyncio.run(run_migrations_online())

@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.core.security import get_current_active_user, require_roles
-from app.models.civic_poll import CivicPollEvent, CivicPollResult
+from app.models.civic_poll import CivicPollEvent, CivicPollResult, CivicTranscriptCandidate
 from app.models.user import User
 from app.services.civic_poll_client import (
     CivicPollClient,
@@ -24,12 +24,7 @@ from app.services.transcript import group_topic_candidates, parse_transcript
 router = APIRouter()
 
 
-@router.post("/transcripts/preview")
-async def preview_transcript(
-    file: UploadFile = File(...),
-    source_url: str = Form(""),
-    current_user: User = Depends(require_roles("admin", "analyst")),
-):
+async def _parse_transcript_upload(file: UploadFile) -> tuple[str, list[dict[str, object]]]:
     filename = file.filename or ""
     if not filename.lower().endswith((".txt", ".srt", ".vtt")):
         raise HTTPException(status_code=400, detail="Gunakan berkas TXT, SRT, atau VTT")
@@ -37,9 +32,18 @@ async def preview_transcript(
     if len(content) > 5 * 1024 * 1024:
         raise HTTPException(status_code=413, detail="Ukuran transkrip maksimal 5 MB")
     try:
-        segments = parse_transcript(content.decode("utf-8-sig"), filename)
+        return filename, parse_transcript(content.decode("utf-8-sig"), filename)
     except (UnicodeDecodeError, ValueError) as error:
         raise HTTPException(status_code=400, detail=str(error)) from error
+
+
+@router.post("/transcripts/preview")
+async def preview_transcript(
+    file: UploadFile = File(...),
+    source_url: str = Form(""),
+    current_user: User = Depends(require_roles("admin", "analyst")),
+):
+    filename, segments = await _parse_transcript_upload(file)
     return {
         "filename": filename,
         "source_url": source_url or None,
@@ -47,6 +51,71 @@ async def preview_transcript(
         "duration_seconds": segments[-1]["end_seconds"],
         "segments": segments,
         "topic_candidates": group_topic_candidates(segments),
+    }
+
+
+@router.post("/transcripts/queue", status_code=201)
+async def queue_transcript(
+    file: UploadFile = File(...),
+    source_url: str = Form(""),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_roles("admin", "analyst")),
+):
+    filename, segments = await _parse_transcript_upload(file)
+    candidates = group_topic_candidates(segments)
+    records = [
+        CivicTranscriptCandidate(
+            filename=filename,
+            source_url=source_url or None,
+            candidate_number=item["candidate_number"],
+            start_seconds=item["start_seconds"],
+            end_seconds=item["end_seconds"],
+            title=item["title"],
+            transcript_text=item["text"],
+            created_by_id=current_user.id,
+        )
+        for item in candidates
+    ]
+    db.add_all(records)
+    await db.commit()
+    return {
+        "status": "PENDING",
+        "queued": len(records),
+        "candidate_ids": [str(record.id) for record in records],
+    }
+
+
+@router.get("/transcripts/queue")
+async def list_transcript_queue(
+    queue_status: str = Query("PENDING", alias="status"),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_roles("admin", "analyst")),
+):
+    if queue_status not in {"PENDING", "APPROVED", "REJECTED"}:
+        raise HTTPException(status_code=422, detail="Status antrean tidak valid")
+    records = (
+        await db.execute(
+            select(CivicTranscriptCandidate)
+            .where(CivicTranscriptCandidate.status == queue_status)
+            .order_by(CivicTranscriptCandidate.created_at.desc())
+        )
+    ).scalars().all()
+    return {
+        "status": queue_status,
+        "total": len(records),
+        "items": [
+            {
+                "id": str(record.id),
+                "filename": record.filename,
+                "source_url": record.source_url,
+                "start_seconds": float(record.start_seconds),
+                "end_seconds": float(record.end_seconds) if record.end_seconds is not None else None,
+                "title": record.title,
+                "text": record.transcript_text,
+                "created_at": record.created_at,
+            }
+            for record in records
+        ],
     }
 
 

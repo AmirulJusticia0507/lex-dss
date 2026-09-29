@@ -1,6 +1,5 @@
 import uuid
 from datetime import datetime
-from typing import Optional
 
 from sqlalchemy import (
     Boolean,
@@ -34,17 +33,19 @@ class CivicPollEvent(Base):
     payload_hash: Mapped[str] = mapped_column(String(64), nullable=False)
     revision: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
     status: Mapped[str] = mapped_column(String(20), nullable=False, default="unknown")
-    remote_topic_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
-    region_code: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
-    opens_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
-    closes_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
-    options: Mapped[Optional[list]] = mapped_column(JSONB, nullable=True)
-    legal_audit: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True)
-    source: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True)
-    submitted_by_id: Mapped[Optional[uuid.UUID]] = mapped_column(UUID(as_uuid=True), nullable=True)
+    remote_topic_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    region_code: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    opens_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    closes_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    options: Mapped[list | None] = mapped_column(JSONB, nullable=True)
+    legal_audit: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    source: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    submitted_by_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
     submitted_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+    )
 
     __table_args__ = (
         Index("idx_civic_poll_events_status", "status"),
@@ -69,15 +70,15 @@ class CivicPollResult(Base):
     revision: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
     status: Mapped[str] = mapped_column(String(20), nullable=False)
     total_responses: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    total_registered: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
-    participation_percent: Mapped[Optional[float]] = mapped_column(Numeric(5, 2), nullable=True)
-    options: Mapped[Optional[list]] = mapped_column(JSONB, nullable=True)
-    evidence_root: Mapped[Optional[str]] = mapped_column(String(128), nullable=True)
+    total_registered: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    participation_percent: Mapped[float | None] = mapped_column(Numeric(5, 2), nullable=True)
+    options: Mapped[list | None] = mapped_column(JSONB, nullable=True)
+    evidence_root: Mapped[str | None] = mapped_column(String(128), nullable=True)
     voided: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-    correction_reason: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    superseded_by_event_id: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    correction_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
+    superseded_by_event_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
     content_hash: Mapped[str] = mapped_column(String(64), nullable=False)
-    source_updated_at: Mapped[Optional[str]] = mapped_column(String(40), nullable=True)
+    source_updated_at: Mapped[str | None] = mapped_column(String(40), nullable=True)
     collected_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
@@ -89,3 +90,29 @@ class CivicPollResult(Base):
 
     def __repr__(self):
         return f"<CivicPollResult(event_id='{self.event_id}', revision={self.revision}, responses={self.total_responses})>"
+
+
+class CivicTranscriptCandidate(Base):
+    """Potongan transkrip yang menunggu keputusan moderator."""
+
+    __tablename__ = "civic_transcript_candidates"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    filename: Mapped[str] = mapped_column(String(255), nullable=False)
+    source_url: Mapped[str | None] = mapped_column(Text, nullable=True)
+    candidate_number: Mapped[int] = mapped_column(Integer, nullable=False)
+    start_seconds: Mapped[float] = mapped_column(Numeric(10, 3), nullable=False)
+    end_seconds: Mapped[float | None] = mapped_column(Numeric(10, 3), nullable=True)
+    title: Mapped[str] = mapped_column(String(200), nullable=False)
+    transcript_text: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[str] = mapped_column(String(20), nullable=False, default="PENDING")
+    moderator_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_by_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    reviewed_by_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    reviewed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+    __table_args__ = (
+        Index("idx_civic_transcript_candidates_status", "status"),
+        Index("idx_civic_transcript_candidates_created", "created_at"),
+    )
