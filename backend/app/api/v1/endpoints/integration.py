@@ -36,6 +36,7 @@ async def external_source_status(
         "djp": (settings.DJP_API_BASE_URL, settings.DJP_API_CLIENT_ID, settings.DJP_API_CLIENT_SECRET),
         "kemenperin": (settings.KEMENPERIN_API_BASE_URL, settings.KEMENPERIN_API_KEY),
         "dpr": (settings.DPR_API_BASE_URL, settings.DPR_API_KEY),
+        "enetizen": (settings.ENETIZEN_URL, settings.ENETIZEN_HMAC_SECRET),
     }
     return {
         "sources": [

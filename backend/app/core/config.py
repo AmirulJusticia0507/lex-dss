@@ -62,6 +62,10 @@ class Settings(BaseSettings):
     LEX_INTEGRITY_URL: str = "http://localhost:3000"
     INTERNAL_API_KEY: Optional[str] = None
 
+    # E-Netizen civic polling. Mirrors LEX_DSS_HMAC_SECRET on the e-voting side.
+    ENETIZEN_URL: str = "http://localhost:8000"
+    ENETIZEN_HMAC_SECRET: Optional[str] = None
+
     # External public-sector data integrations. Secrets stay in .env only.
     SIPP_API_BASE_URL: Optional[str] = None
     SIPP_API_KEY: Optional[str] = None

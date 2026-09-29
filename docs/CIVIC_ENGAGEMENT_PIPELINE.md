@@ -77,39 +77,99 @@ Skenario ini merancang *pipeline* otomatisasi yang mengubah rekaman rapat/siaran
 
 ## 📊 Data Payload Standard (JSON)
 
-Berikut adalah struktur JSON yang dialirkan antar-sistem dari **Lex Integrity/DSS** ke  **e-Netizen Voting** :
+Berikut adalah struktur JSON yang dialirkan dari **Lex DSS** ke **e-Netizen Voting**.
+Bentuk di bawah adalah **kontrak v1.0** yang sudah diimplementasikan di
+`app/services/civic_poll_client.py` dan divalidasi `CivicPollImportSerializer`
+di sisi e-Netizen.
+
+> Skema ini menggantikan draf `source_metadata` / `micro_poll_payload` yang
+> pernah ada di dokumen ini. Field `voting_guard` juga dihapus: e-Netizen
+> menegakkan verifikasi OTP dan DPT secara tidak kondisional, sehingga tidak
+> ada tempat untuk menyetelnya per-polling.
 
 **JSON**
 
 ```
 {
-  "source_metadata": {
-    "youtube_url": "https://www.youtube.com/watch?v=example_dprd_diy",
-    "session_title": "Rapat Paripurna Pembahasan Raperda Retribusi Daerah",
-    "timestamp_marker": "01:14:20 - 01:45:10"
+  "schema_version": "1.0",
+  "event_id": "POLL-2026-SLM-008",
+  "generated_at": "2026-09-29T10:00:00+07:00",
+  "source": {
+    "type": "youtube_video",
+    "url": "https://www.youtube.com/watch?v=example_dprd_diy",
+    "publisher": "DPRD Kabupaten Sleman",
+    "title": "Rapat Paripurna Pembahasan Raperda Retribusi Daerah",
+    "segment_start_seconds": 4460,
+    "segment_end_seconds": 6310
   },
   "legal_audit": {
-    "topic": "Kenaikan Retribusi Pedagang Pasar Tradisional",
-    "affected_jurisdiction": "Pemprov DIY / Pemkab Sleman",
-    "referenced_rules": ["UU No. 1 Tahun 2022", "PERDA-SLEMAN-2023-04"],
-    "detected_loopholes": "Diskresi kenaikan tarif hingga 20% dapat ditentukan sepihak oleh Perbup tanpa persetujuan DPRD.",
-    "humanitarian_impact": "Dapat menekan pendapatan pedagang mikro/kecil hingga 12% di tengah inflasi bahan pokok."
-  },
-  "micro_poll_payload": {
-    "poll_id": "POLL-2026-SLM-008",
-    "simplified_question": "DPRD sedang membahas wacana kenaikan retribusi pasar sebesar 15% untuk perbaikan fasilitas. Bagaimana pendapatmu?",
-    "options": [
-      { "id": "A", "label": "Setuju (Fasilitas pasar harus diperbaiki)" },
-      { "id": "B", "label": "Setuju dengan Syarat (Kenaikan maksimal 5%)" },
-      { "id": "C", "label": "Tolak (Mencabut pasal diskresi Perbup)" }
+    "summary": "Kenaikan retribusi pedagang pasar tradisional",
+    "jurisdiction": "Pemprov DIY / Pemkab Sleman",
+    "references": [
+      { "title": "UU No. 1 Tahun 2022", "article": "Pasal ...", "quote": "..." }
     ],
-    "voting_guard": {
-      "require_face_match": true,
-      "require_valid_nik": true
-    }
+    "risks": [
+      "Diskresi kenaikan tarif hingga 20% dapat ditentukan sepihak oleh Perbup tanpa persetujuan DPRD."
+    ],
+    "limitations": [],
+    "confidence": 0.78
+  },
+  "poll_draft": {
+    "question": "DPRD sedang membahas kenaikan retribusi pasar sebesar 15%. Bagaimana pendapatmu?",
+    "description": "Ringkasan isu satu menit untuk warga.",
+    "disclaimer": "Jajak pendapat konsultatif; hasilnya bukan keputusan hukum yang mengikat.",
+    "options": [
+      { "code": "A", "label": "Setuju (Fasilitas pasar harus diperbaiki)" },
+      { "code": "B", "label": "Setuju dengan Syarat (Kenaikan maksimal 5%)" },
+      { "code": "C", "label": "Tolak (Mencabut pasal diskresi Perbup)" }
+    ],
+    "opens_at": "2026-09-29T12:00:00+07:00",
+    "closes_at": "2026-10-06T12:00:00+07:00",
+    "region_code": "ID-SL"
   }
 }
 ```
+
+## 🔐 Autentikasi Request
+
+Setiap request ditandatangani HMAC-SHA256 atas `timestamp + "." + body`:
+
+| Header | Nilai |
+| ------ | ----- |
+| `X-Lex-Timestamp` | epoch detik (e-Netizen menolak selisih > 300 detik) |
+| `X-Lex-Signature` | `sha256=` + HMAC-SHA256(`ENETIZEN_HMAC_SECRET`, `timestamp + "." + body`) |
+
+`ENETIZEN_HMAC_SECRET` di Lex-DSS harus sama dengan `LEX_DSS_HMAC_SECRET` di
+backend e-Netizen. Karena tanda tangan dihitung atas byte body, body wajib
+dikirim apa adanya tanpa serialisasi ulang — itulah sebabnya `canonical_body()`
+menggunakan separator padat. Kesiakan integrasi dapat dicek tanpa membocorkan
+rahasia lewat `GET /api/v1/integration/sources`.
+
+## 🔁 Alur Agregat Balik (Feedback Loop)
+
+Hasil agregat ditarik Lex-DSS dari `GET /api/votes/public/civic/{topic_id}/`
+lalu disimpan sebagai snapshot **append-only** pada tabel `civic_poll_results`.
+Setiap perubahan substantif menghasilkan `revision` baru, sehingga histori bobot
+suara publik tetap dapat diaudit dan polling yang dikoreksi tidak menghapus
+jejak angka lamanya.
+
+| Endpoint Lex-DSS | Fungsi |
+| ---------------- | ------ |
+| `POST /api/v1/civic-poll/drafts` | Kirim draf polling bertanda tangan HMAC; idempoten terhadap `event_id` |
+| `POST /api/v1/civic-poll/events/{event_id}/collect` | Tarik agregat dari e-Netizen |
+| `GET /api/v1/civic-poll/events/{event_id}/results` | Riwayat seluruh revisi agregat |
+| `GET /api/v1/civic-poll/results/latest` | Agregat terbaru per polling + `evidence_grade` |
+
+Field `evidence_grade` memastikan DSS tidak memperlakukan polling tanpa jejak
+verifikasi setara dengan jajak pendapat bersampel memadai:
+
+| Grade | Arti |
+| ----- | ---- |
+| `VERIFIED` | Punya `evidence_root` dan partisipasi ≥ 5% |
+| `PARTIAL` | Punya `evidence_root`, data partisipasi belum tersedia |
+| `LOW_PARTICIPATION` | Bukti ada, tapi sampel terlalu kecil untuk burden pembuktian tinggi |
+| `UNVERIFIED` | Angka tanpa bukti integritas — jangan dipakai sebagai bobot |
+| `VOIDED` | Polling dibatalkan atau dikoreksi di sisi e-Netizen |
 
 ## 📈 Impact Matrix Integrasi
 
