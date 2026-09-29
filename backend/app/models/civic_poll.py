@@ -117,3 +117,31 @@ class CivicTranscriptCandidate(Base):
         Index("idx_civic_transcript_candidates_status", "status"),
         Index("idx_civic_transcript_candidates_created", "created_at"),
     )
+
+
+class CivicTranscriptionJob(Base):
+    """Durable status and output for one batch STT upload."""
+
+    __tablename__ = "civic_transcription_jobs"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    filename: Mapped[str] = mapped_column(String(255), nullable=False)
+    source_url: Mapped[str | None] = mapped_column(Text, nullable=True)
+    content_type: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    size_bytes: Mapped[int] = mapped_column(Integer, nullable=False)
+    language: Mapped[str] = mapped_column(String(20), nullable=False, default="id")
+    model: Mapped[str] = mapped_column(String(100), nullable=False)
+    status: Mapped[str] = mapped_column(String(20), nullable=False, default="QUEUED")
+    transcript_text: Mapped[str | None] = mapped_column(Text, nullable=True)
+    segments: Mapped[list | None] = mapped_column(JSONB, nullable=True)
+    candidate_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    error: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_by_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    started_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+    __table_args__ = (
+        Index("idx_civic_transcription_jobs_status", "status"),
+        Index("idx_civic_transcription_jobs_created", "created_at"),
+    )

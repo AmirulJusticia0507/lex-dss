@@ -66,6 +66,12 @@ class Settings(BaseSettings):
     ENETIZEN_URL: str = "http://localhost:8000"
     ENETIZEN_HMAC_SECRET: Optional[str] = None
 
+    # Batch speech-to-text for civic meeting audio/video.
+    STT_API_KEY: Optional[str] = None
+    STT_API_BASE: str = "https://api.openai.com/v1"
+    STT_MODEL: str = "whisper-1"
+    STT_MAX_UPLOAD_MB: int = 25
+
     # External public-sector data integrations. Secrets stay in .env only.
     SIPP_API_BASE_URL: Optional[str] = None
     SIPP_API_KEY: Optional[str] = None

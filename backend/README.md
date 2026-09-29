@@ -263,6 +263,10 @@ alembic upgrade head
 | `DATABASE_URL` | Full connection string (production/override) | - |
 | `SECRET_KEY` | JWT secret key | (required) |
 | `OPENAI_API_KEY` | OpenAI API key | (required for embeddings) |
+| `STT_API_KEY` | API key provider batch speech-to-text | - |
+| `STT_API_BASE` | OpenAI-compatible audio API base URL | https://api.openai.com/v1 |
+| `STT_MODEL` | Model transkripsi audio/video | whisper-1 |
+| `STT_MAX_UPLOAD_MB` | Batas ukuran media per job | 25 |
 | `EMBEDDING_MODEL` | OpenAI embedding model | text-embedding-3-small |
 | `LLM_MODEL` | OpenAI LLM model | gpt-4-turbo-preview |
 

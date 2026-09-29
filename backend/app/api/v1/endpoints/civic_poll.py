@@ -2,14 +2,29 @@ import uuid
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Depends,
+    File,
+    Form,
+    HTTPException,
+    Query,
+    UploadFile,
+)
 from pydantic import BaseModel, Field, model_validator
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.database import get_db
+from app.core.config import settings
+from app.core.database import async_session_maker, get_db
 from app.core.security import get_current_active_user, require_roles
-from app.models.civic_poll import CivicPollEvent, CivicPollResult, CivicTranscriptCandidate
+from app.models.civic_poll import (
+    CivicPollEvent,
+    CivicPollResult,
+    CivicTranscriptCandidate,
+    CivicTranscriptionJob,
+)
 from app.models.user import User
 from app.services.civic_poll_client import (
     CivicPollClient,
@@ -20,6 +35,7 @@ from app.services.civic_poll_client import (
     normalize_aggregate,
     payload_hash,
 )
+from app.services.stt import transcribe_media, validate_media_upload
 from app.services.transcript import (
     group_topic_candidates,
     parse_transcript,
@@ -34,6 +50,107 @@ class TranscriptReviewRequest(BaseModel):
     decision: str
     notes: str | None = Field(None, max_length=2000)
     title: str | None = Field(None, min_length=1, max_length=200)
+
+
+async def _run_transcription_job(job_id: uuid.UUID, content: bytes) -> None:
+    async with async_session_maker() as db:
+        job = await db.get(CivicTranscriptionJob, job_id)
+        if job is None:
+            return
+        job.status = "PROCESSING"
+        job.started_at = datetime.utcnow()
+        await db.commit()
+        try:
+            result = await transcribe_media(content, job.filename, job.language)
+            candidates = group_topic_candidates(result["segments"])
+            db.add_all(
+                [
+                    CivicTranscriptCandidate(
+                        filename=job.filename,
+                        source_url=job.source_url,
+                        candidate_number=item["candidate_number"],
+                        start_seconds=item["start_seconds"],
+                        end_seconds=item["end_seconds"],
+                        title=item["title"],
+                        transcript_text=item["text"],
+                        created_by_id=job.created_by_id,
+                    )
+                    for item in candidates
+                ]
+            )
+            job.transcript_text = result["text"]
+            job.segments = result["segments"]
+            job.candidate_count = len(candidates)
+            job.status = "COMPLETED"
+            job.completed_at = datetime.utcnow()
+            await db.commit()
+        except Exception as error:
+            await db.rollback()
+            job = await db.get(CivicTranscriptionJob, job_id)
+            if job is not None:
+                job.status = "FAILED"
+                job.error = str(error)[:2000]
+                job.completed_at = datetime.utcnow()
+                await db.commit()
+
+
+@router.post("/transcriptions/jobs", status_code=202)
+async def create_transcription_job(
+    background_tasks: BackgroundTasks,
+    file: UploadFile = File(...),
+    source_url: str = Form(""),
+    language: str = Form("id"),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_roles("admin", "analyst")),
+):
+    filename = file.filename or ""
+    content = await file.read()
+    try:
+        validate_media_upload(filename, content, settings.STT_MAX_UPLOAD_MB)
+    except ValueError as error:
+        detail = str(error)
+        status_code = 413 if "maksimal" in detail else 400
+        raise HTTPException(status_code=status_code, detail=detail) from error
+
+    job = CivicTranscriptionJob(
+        filename=filename,
+        source_url=source_url or None,
+        content_type=file.content_type,
+        size_bytes=len(content),
+        language=language,
+        model=settings.STT_MODEL,
+        created_by_id=current_user.id,
+    )
+    db.add(job)
+    await db.commit()
+    await db.refresh(job)
+    background_tasks.add_task(_run_transcription_job, job.id, content)
+    return {"job_id": str(job.id), "status": job.status, "filename": job.filename}
+
+
+@router.get("/transcriptions/jobs/{job_id}")
+async def get_transcription_job(
+    job_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_roles("admin", "analyst")),
+):
+    job = await db.get(CivicTranscriptionJob, job_id)
+    if job is None:
+        raise HTTPException(status_code=404, detail="Job transkripsi tidak ditemukan")
+    return {
+        "job_id": str(job.id),
+        "status": job.status,
+        "filename": job.filename,
+        "source_url": job.source_url,
+        "language": job.language,
+        "model": job.model,
+        "size_bytes": job.size_bytes,
+        "candidate_count": job.candidate_count,
+        "error": job.error,
+        "created_at": job.created_at,
+        "started_at": job.started_at,
+        "completed_at": job.completed_at,
+    }
 
 
 async def _parse_transcript_upload(file: UploadFile) -> tuple[str, list[dict[str, object]]]:
